@@ -142,7 +142,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             x = embedding   #(seq_length, hidden_size) Verified 
             print('after embedding size: ', embedding.shape)
                         
-            for index in range(self.layers): # hidden layers 
+            for index in range(len(self.layers)): # hidden layers 
                 # Here I work on each layers with 
                 # pre activation:
                 # row index 0 is the firt row
