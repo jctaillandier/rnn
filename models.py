@@ -104,7 +104,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         This is used for the first mini-batch in an epoch, only.
         """
         #return  # a parameter tensor of shape (self.num_layers, self.batch_size, self.hidden_size)
-        return self.layers[0].new_zeros(self.num_layers, self.batch_size, self.hidden_size)
+        return self.layers[0].zeros(self.num_layers, self.batch_size, self.hidden_size)
         
     def forward(self, inputs, hidden):
         """
