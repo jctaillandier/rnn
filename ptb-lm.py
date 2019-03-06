@@ -107,7 +107,7 @@ parser = argparse.ArgumentParser(description='PyTorch Penn Treebank Language Mod
 # Arguments you may need to set to run different experiments in 4.1 & 4.2.
 parser.add_argument('--data', type=str, default='data',
                     help='location of the data corpus')
-parser.add_argument('--model', type=str, default='GRU',
+parser.add_argument('--model', type=str, default='RNN',
                     help='type of recurrent net (RNN, GRU, TRANSFORMER)')
 parser.add_argument('--optimizer', type=str, default='SGD_LR_SCHEDULE',
                     help='optimization algo to use; SGD, SGD_LR_SCHEDULE, ADAM')
@@ -297,7 +297,7 @@ if args.model == 'RNN':
                 seq_len=args.seq_len, batch_size=args.batch_size,
                 vocab_size=vocab_size, num_layers=args.num_layers, 
                 dp_keep_prob=args.dp_keep_prob)
-""" 
+ 
 elif args.model == 'GRU':
     model = GRU(emb_size=args.emb_size, hidden_size=args.hidden_size, 
                 seq_len=args.seq_len, batch_size=args.batch_size,
@@ -320,7 +320,7 @@ elif args.model == 'TRANSFORMER':
     model.vocab_size=vocab_size
 else:
   print("Model type not recognized.")
-"""
+
 model.to(device)
 
 # LOSS FUNCTION
