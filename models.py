@@ -103,13 +103,14 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         return self.layers[0].new_zeros(self.num_layers, self.batch_size, self.hidden_size)
         
     def forward(self, inputs, hidden):
-    """Arguments:
-        - inputs: A mini-batch of input sequences, composed of integers that 
-                    represent the index of the current token(s) in the vocabulary.
-                        shape: (seq_len, batch_size)
-        - hidden: The initial hidden states for every layer of the stacked RNN.
-                        shape: (num_layers, batch_size, hidden_size)
-    """
+        """
+        Arguments:
+            - inputs: A mini-batch of input sequences, composed of integers that 
+                        represent the index of the current token(s) in the vocabulary.
+                            shape: (seq_len, batch_size)
+            - hidden: The initial hidden states for every layer of the stacked RNN.
+                            shape: (num_layers, batch_size, hidden_size)
+        """
 
 
         # TODO ========================
@@ -134,6 +135,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Here I work with sentence vector inputs[:, i]
             embedding = self.encoder(inputs[:, i]) # pass in a single integer
             x = embedding   #(batch_size, Emb_size ) 
+            print('after embedding size: ', embedding)
             
             for index, data in enumerate(self.num_layers): # hidden layers 
                 # Here I work on each layers with 
@@ -150,7 +152,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
                 
                 x = self.drop(x)
-            
+            print('After iteration over layers: ', x)
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT 
             #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
             logits[i,:,:] = self.decoder(x)
