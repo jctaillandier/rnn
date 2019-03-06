@@ -140,13 +140,13 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Here I work with sentence vector inputs[:, i]
             embedding = self.encoder(inputs[:, i]) # pass in a single integer
             x = embedding   #(batch_size, Emb_size ) 
-            print('after embedding size: ', embedding)
+            print('after embedding size: ', embedding.shape)
             
-            for index, data in enumerate(self.num_layers): # hidden layers 
+            for index, data in range(self.layers): # hidden layers 
                 # Here I work on each layers with 
                 # pre activation:
                 # row index 0 is the firt row
-                y = np.matmul(x, self.layers[index]) + hidden_states[index, i] + data.bias
+                y = self.layers[index](x) + self.layers[index+1](hidden_states[index, i] )
                 # layer output
                 x = torch.nn.functional.tanh(y)
                 
@@ -156,7 +156,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
                 
                 x = self.drop(x)
-            print('After iteration over layers: ', x)
+            print('After iteration over layers, x: ', x.shape)
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT 
             #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
             logits[i,:,:] = self.decoder(x)
