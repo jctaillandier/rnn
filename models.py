@@ -62,7 +62,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
-        self.layers = clones(nn.linear(self.hidden_size, hidden_size), num_layers)
+        self.layers = clones(nn.Linear(self.hidden_size, hidden_size), num_layers)
         #nonlinearity = {'RNN_TANH': 'tanh', 'RNN_RELU': 'relu'}
         
         
