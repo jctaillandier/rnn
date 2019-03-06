@@ -46,9 +46,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
-        self.encoder = nn.Embedding(vocab_size, seq_len, bias=False) # input is an integer, index of word in dict
+        self.encoder = nn.Embedding(vocab_size, emb_size, bias=False) # input is an integer, index of word in dict
         # 
-        self.decoder = nn.Linear(num_layers, vocab_size, bias=False)
+        self.decoder = nn.Linear(num_layers, vocab_size, bias=True)
         
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
@@ -62,7 +62,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
-        self.layers = clone(nn.linear(self.hidden_size, hidden_size))
+        self.layers = clones(nn.linear(self.hidden_size, hidden_size), num_layers)
         #nonlinearity = {'RNN_TANH': 'tanh', 'RNN_RELU': 'relu'}
         
         
@@ -103,6 +103,15 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         return self.layers[0].new_zeros(self.num_layers, self.batch_size, self.hidden_size)
         
     def forward(self, inputs, hidden):
+    """Arguments:
+        - inputs: A mini-batch of input sequences, composed of integers that 
+                    represent the index of the current token(s) in the vocabulary.
+                        shape: (seq_len, batch_size)
+        - hidden: The initial hidden states for every layer of the stacked RNN.
+                        shape: (num_layers, batch_size, hidden_size)
+    """
+
+
         # TODO ========================
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the 
@@ -116,35 +125,44 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # RNN. For a stacked RNN, the hidden states of the l-th layer are used as 
         # inputs to to the {l+1}-st layer (taking the place of the input sequence).
 
-        # to store hidden states at each time step
-        hidden_states = torch.Tensor(inputs.shape[0], self.num_layers)
+        # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
+        hidden_states = torch.empty(self.num_layers, inputs.shape[1], self.hidden_size)
         
-        hidden_states[0,:] = hidden
+        hidden_states = hidden
         
         for i in range(len(inputs.shape[0])):  # Timesteps / word
-            embedding = self.encoder(inputs[i])
-            x = embedding    
+            # Here I work with sentence vector inputs[:, i]
+            embedding = self.encoder(inputs[:, i]) # pass in a single integer
+            x = embedding   #(batch_size, Emb_size ) 
             
             for index, data in enumerate(self.num_layers): # hidden layers 
+                # Here I work on each layers with 
+
                 # pre activation:
-                y = np.matmul(x, layers[index]) + hidden_states[i] + data.bias
+                # row index 0 is the firt row
+                y = np.matmul(x, self.layers[index]) + hidden_states[index, i] + data.bias
                 # layer output
-                x = torch.nn.functional.relu(y)
+                x = torch.nn.functional.tanh(y)
+                
                 # to use next timestep:
-                hidden_states[i+1,index] = x
+                # (num_layers, batch_size, hidden_size)
+                hidden_states[index, i, :] = x # where x is vector size (????)
+
+                
+                x = self.drop(x)
             
-            timestep_output.append(x)
-        # timestep output    
-        output = x
-            
+            ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT 
+            #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
+            logits[i,:,:] = self.decoder(x)
+            #this now became ( , vocab_size)
+
+
+            #logits shape: (seq_len, batch_size, vocab_size)
+            ### DECODE --> Non le embedding a un token pour arreter la phrase plus tot
+            #########################################
+        #applique softmax 
         
         """
-        Arguments:
-            - inputs: A mini-batch of input sequences, composed of integers that 
-                        represent the index of the current token(s) in the vocabulary.
-                            shape: (seq_len, batch_size)
-            - hidden: The initial hidden states for every layer of the stacked RNN.
-                            shape: (num_layers, batch_size, hidden_size)
         
         Returns:
             - Logits for the softmax over output tokens at every time-step.
@@ -160,7 +178,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 if you are curious.
                         shape: (num_layers, batch_size, hidden_size)
         """
-        return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states[-1 , :]
+                                            # Ici une valeur dans dernier timestep pour chaque layers (to feed into next batch)
+        return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states[-1 , :] 
         # 
 
     def generate(self, input, hidden, generated_seq_len):
