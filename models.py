@@ -41,6 +41,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #emb_size:     The numvwe of units in the input embeddings
         self.emb_size = emb_size
         
+        self.vocab_size = vocab_size
+        self.hidden_size = hidden_size
+        self.batch_size = batch_size
         #hidden_size:  The number of hidden units per layer
         self.hidden_size = hidden_size
         
