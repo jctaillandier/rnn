@@ -296,7 +296,8 @@ if args.model == 'RNN':
     model = RNN(emb_size=args.emb_size, hidden_size=args.hidden_size, 
                 seq_len=args.seq_len, batch_size=args.batch_size,
                 vocab_size=vocab_size, num_layers=args.num_layers, 
-                dp_keep_prob=args.dp_keep_prob) 
+                dp_keep_prob=args.dp_keep_prob)
+""" 
 elif args.model == 'GRU':
     model = GRU(emb_size=args.emb_size, hidden_size=args.hidden_size, 
                 seq_len=args.seq_len, batch_size=args.batch_size,
@@ -319,7 +320,7 @@ elif args.model == 'TRANSFORMER':
     model.vocab_size=vocab_size
 else:
   print("Model type not recognized.")
-
+"""
 model.to(device)
 
 # LOSS FUNCTION
