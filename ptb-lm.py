@@ -276,7 +276,7 @@ class Batch:
 
 # LOAD DATA
 print('Loading data from '+args.data)
-raw_data = ptb_raw_data(data_path=args.data)
+raw_data = ptb_raw_data(data_path='rnn'+args.data)
 train_data, valid_data, test_data, word_to_id, id_2_word = raw_data
 vocab_size = len(word_to_id)
 print('  vocabulary size: {}'.format(vocab_size))
