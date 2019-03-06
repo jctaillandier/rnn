@@ -139,10 +139,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         for i in range(inputs.shape[0]):  # Timesteps / word
             # Here I work with sentence vector inputs[:, i]
             embedding = self.encoder(inputs[:, i]) # pass in a single integer
-            x = embedding   #(batch_size, Emb_size ) 
+            x = embedding   #(seq_length, hidden_size) Verified 
             print('after embedding size: ', embedding.shape)
-            
-            for index, data in range(self.layers): # hidden layers 
+                        
+            for index in range(self.layers): # hidden layers 
                 # Here I work on each layers with 
                 # pre activation:
                 # row index 0 is the firt row
