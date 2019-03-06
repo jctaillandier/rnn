@@ -134,7 +134,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         hidden_states = torch.empty(self.num_layers, inputs.shape[1], self.hidden_size)
         
         hidden_states = hidden
-        logits = torch.tensor(self.seq_len, self.batch_size, self.vocab_size)
+        logits = torch.tensor((self.seq_len, self.batch_size, self.vocab_size))
         
         for i in range(len(inputs.shape[0])):  # Timesteps / word
             # Here I work with sentence vector inputs[:, i]
