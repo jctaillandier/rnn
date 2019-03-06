@@ -139,7 +139,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         for i in range(inputs.shape[0]):  # Timesteps / word
             # Here I work with sentence vector inputs[:, i]
             embedding = self.encoder(inputs[:, i]) # pass in a single integer
-            x = embedding   #(seq_length, hidden_size) Verified 
+            x = embedding   #(seq_length 35 , hidden_size 200) Verified 
             print('after embedding size: ', embedding.shape)
                         
             for index in range(len(self.layers)): # hidden layers 
@@ -148,11 +148,11 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 # row index 0 is the firt row
                 y = self.layers[index](x) + self.layers[index+1](hidden_states[index, i] )
                 # layer output
-                x = torch.nn.functional.tanh(y)
+                x = torch.tanh(y)
                 print('size of thing to store in hidden_states: ', x.shape)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states[i, index, :] = x # where x is vector size (????)
+                hidden_states[i, :, :] = x # where x is vector size (????)
 
                 
                 x = self.drop(x)
