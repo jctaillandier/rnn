@@ -210,7 +210,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             - Sampled sequences of tokens
                         shape: (generated_seq_len, batch_size)
         """
-    
+        
         return samples
 
 
