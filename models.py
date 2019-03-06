@@ -149,10 +149,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 y = self.layers[index](x) + self.layers[index+1](hidden_states[index, i] )
                 # layer output
                 x = torch.nn.functional.tanh(y)
-                print('size of thing to store in hidden_states: ', x)
+                print('size of thing to store in hidden_states: ', x.shape)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states[index, :, :] = x # where x is vector size (????)
+                hidden_states[i, index, :] = x # where x is vector size (????)
 
                 
                 x = self.drop(x)
