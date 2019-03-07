@@ -149,7 +149,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
             x = embedding[timestep,:,:]  
-            x = x.type(torch.LongTensor)
+            
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:
 
@@ -167,7 +167,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             torch.cat((logits, x[-1,:,:]), dim=0)
-            
+        logits = logits.type(torch.FloatTensor)
         print('logits size before decode: ', logits.shape)
         logits = self.decoder(logits)
         print('logits final size: ', logits.shape)
