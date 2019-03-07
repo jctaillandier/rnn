@@ -66,9 +66,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
-        self.layers = clones(nn.Linear(self.hidden_size, hidden_size), num_layers)
-        #nonlinearity = {'RNN_TANH': 'tanh', 'RNN_RELU': 'relu'}
-        
+        self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)        
         
         #Initializing weights
         self.init_weights_uniform()
@@ -93,7 +92,11 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # TODO ========================
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
-        for index, data in enumerate(self.layers):
+        for index, data in enumerate(self.regular_layers):
+            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            data.bias.data.fill_(0)
+        
+        for index, data in enumerate(self.rec_layers):
             torch.nn.init.uniform_(data.weight, a=-range, b=range)
             data.bias.data.fill_(0)
 
@@ -131,28 +134,28 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # inputs to to the {l+1}-st layer (taking the place of the input sequence).
 
         # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
-        hidden_states = torch.empty(self.num_layers, inputs.shape[1], self.hidden_size)
-        
-        hidden_states = hidden
+        hidden_states = torch.tensor(hidden)
+        print('hidden_state tensor: ', hidden_states)
+        #hidden_states[,,] = hidden
         logits = torch.tensor((self.seq_len, self.batch_size, self.vocab_size))
         
-        for i in range(inputs.shape[0]):  # Timesteps / word
-            # Here I work with sentence vector inputs[:, i]
-            embedding = self.encoder(inputs[:, i]) # pass in a single integer
+        for timestep in range(inputs.shape[0]):  # Timesteps / word
+            
+            embedding = self.encoder(inputs[timestep,:]) # pass in a 
             x = embedding   #(seq_length 35 , hidden_size 200) Verified 
             print('after embedding size: ', embedding.shape)
                         
-            for index in range(len(self.layers)): # hidden layers 
+            for layer in range(len(self.regular_layers)): # hidden layers 
                 # Here I work on each layers with 
                 # pre activation:
                 # row index 0 is the firt row
-                y = self.layers[index](x) + self.layers[index+1](hidden_states[index, i] )
+                y = self.regular_layers[layer](x) + self.rec_layers[layer](--hidden_states[layer, i]--)
                 # layer output
                 x = torch.tanh(y)
                 print('size of thing to store in hidden_states: ', x.shape)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states[i, :, :] = x # where x is vector size (????)
+                hidden_states.append(x, dim=?) # where x is vector size (????)
 
                 
                 x = self.drop(x)
