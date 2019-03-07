@@ -168,6 +168,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             z = self.decoder(x)
             print('size before concat to logits: ', z.shape)
+            print('to be concat with logits of size: ', logits.size)
             print()
             torch.cat((logits, z[self.num_layers-1,:,:]))
 
