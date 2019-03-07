@@ -163,15 +163,14 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
                 
                 x = self.drop(x)
-            print('After iteration ',self.num_layers,' over layers, shape of x: ', x.shape)
+            #print('After iteration ',self.num_layers,' over layers, shape of x: ', x.shape)
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
-            #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
-            decoded_output = self.decoder(x)
-            print('decoded output size: ', decoded_output.shape)
-
-            ### DECODE --> Non le embedding a un token pour arreter la phrase plus tot
-            #########################################
+            logits.append(x[-1,:,:], axis=0)
+            
+        print('logits size before decode: ', logits.shape)
+        logits = self.decoder(logits)
+        print('logits final size: ', logits.shape)
         
         """
         
@@ -189,8 +188,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 if you are curious.
                         shape: (num_layers, batch_size, hidden_size)
         """
-                                            # Ici une valeur dans dernier timestep pour chaque layers (to feed into next batch)
-        return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states[-1 , :] 
+        return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states 
         # 
 
     def generate(self, input, hidden, generated_seq_len):
