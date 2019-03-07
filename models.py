@@ -93,7 +93,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
         for index, data in enumerate(self.regular_layers):
-            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
         
         for index, data in enumerate(self.rec_layers):
