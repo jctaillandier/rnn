@@ -326,11 +326,13 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 
                 reset = self.reset_layers[layer](x)
                 u_reset_temp = self.u_reset_layers[layer](hidden_states)
-                reset_temp = torch.nn.Sigmoid(reset+u_reset_temp)
+                temp = reset+u_reset_temp
+                reset_temp = torch.nn.Sigmoid(temp)
 
                 forget = self.forget_layers[layer](x)
                 u_forget_temp =self.u_forget_layers[layer](hidden_states)
-                forget_temp = torch.nn.Sigmoid(forget + u_forget_temp)
+                temp2 = forget + u_forget_temp
+                forget_temp = torch.nn.Sigmoid(temp2)
 
                 h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](torch.ger(reset_temp, hidden_states))
                 h_wiggle = torch.tanh(h_wiggle)
