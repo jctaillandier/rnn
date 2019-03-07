@@ -151,13 +151,13 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:
 
-                hidden = self.rec_layers[layer](hidden_states)
-                y = (self.regular_layers[layer](x) + hidden)
+                hid_temp = self.rec_layers[layer](hidden_states)
+                y = (self.regular_layers[layer](x) + hid_temp)
                 # layer output
                 x = torch.tanh(y)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states = hidden 
+                hidden_states = hid_temp 
 
                 
                 x = self.drop(x)
@@ -229,19 +229,113 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
   """
   def __init__(self, emb_size, hidden_size, seq_len, batch_size, vocab_size, num_layers, dp_keep_prob):
     super(GRU, self).__init__()
+    
+    #emb_size:     The numvwe of units in the input embeddings
+    self.emb_size = emb_size
+    
+    self.vocab_size = vocab_size
+    self.hidden_size = hidden_size
+    self.seq_len = seq_len
+    self.batch_size = batch_size
+    #hidden_size:  The number of hidden units per layer
+    self.hidden_size = hidden_size
+    
+    #seq_len:      The length of the input sequences
+    #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
+    self.encoder = nn.Embedding(vocab_size, emb_size) # input is an integer, index of word in dict
+    # 
+    self.decoder = nn.Linear(emb_size, vocab_size)
+    
+    #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
+    #              each time-step)
+    self.num_layers = num_layers
+    
+    #dp_keep_prob: The probability of *not* dropping out units in the 
+    #             non-recurrent connections.
+    #            Do not apply dropout on recurrent connections.
+    self.drop = nn.Dropout(1-dp_keep_prob)
+    
+    # Creating an array of layers of identical size
+             
+    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers) 
+    self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers) 
+    self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)       
+    self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)  
+    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)       
+    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)       
+    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
 
-    # TODO ========================
+    #Initializing weights
+    self.init_weights_uniform()
+        
 
   def init_weights_uniform(self):
-    # TODO ========================
-    return 2
+        # Initialize all the weights uniformly in the range [-range, range]
+        # and all the biases to 0 (in place)
+        for index, data in enumerate(self.regular_layers):
+            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            data.bias.data.fill_(0)
+        
+        for index, data in enumerate(self.rec_layers):
+            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            data.bias.data.fill_(0)
 
   def init_hidden(self):
-    # TODO ========================
-    return # a parameter tensor of shape (self.num_layers, self.batch_size, self.hidden_size)
+      
+    return torch.zeros((self.num_layers, self.batch_size, self.hidden_size))
 
   def forward(self, inputs, hidden):
-    # TODO ========================
+        """
+        seq_len: 35
+        batch_size: 20
+        lr: 20
+        hidden_size: 200
+        emb_size : 20
+        """
+
+        hidden_states =hidden
+
+        logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
+        embedding = self.encoder(inputs) # pass in a 
+        
+        for timestep in range(inputs.shape[0]):  # Timesteps / word
+            x = embedding[timestep,:,:]  
+            
+            for layer in range(len(self.regular_layers)): # hidden layers 
+                
+                reset = self.reset_layers[layer](x)
+                u_reset_temp = self.u_reset_layers[layer](hidden_states)
+                reset_temp = torch.Sigmoid(reset+u_reset_temp)
+
+                forget = self.forget_layers[layer](x)
+                u_forget_temp =self.u_forget_layers[layer](hidden_states)
+                forget_temp = torch.Sigmoid(forget + u_forget_temp)
+
+                h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](torch.ger(reset_temp, hidden_states))
+                h_wiggle = torch.tanh(h_wiggle)
+
+                hid_timestep = torch.ger((1-forget_temp), hidden_states) + torch.ger(forget_temp, h_wiggle)
+
+                #y = (self.regular_layers[layer](x) + hid_temp)
+                # to use next timestep:
+                # (num_layers, batch_size, hidden_size)
+                hidden_states = hid_timestep 
+
+                
+                x = self.drop(hid_timestep)
+
+            z = self.decoder(x)
+            #print('after decoded at each layer: ', z.shape)
+            #print()
+            
+            logits[0,:,:] = z[self.num_layers-1,:,:]
+            
+        #print('logits final size: ', logits.shape)
+        
+        return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states 
+
+
+
     return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden
 
   def generate(self, input, hidden, generated_seq_len):
