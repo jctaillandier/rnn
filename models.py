@@ -165,12 +165,12 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             z = self.decoder(x)
-            print('after decoded at each layer: ', z.shape)
-            print()
+            #print('after decoded at each layer: ', z.shape)
+            #print()
             
             logits[0,:,:] = z[self.num_layers-1,:,:]
             
-        print('logits final size: ', logits.shape)
+        #print('logits final size: ', logits.shape)
         
         """
         
