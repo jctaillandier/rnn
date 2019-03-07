@@ -117,9 +117,13 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                             shape: (seq_len, batch_size)
             - hidden: The initial hidden states for every layer of the stacked RNN.
                             shape: (num_layers, batch_size, hidden_size)
+        -------------------  
+        seq_len: 35
+        batch_size: 20
+        lr: 20
+        hidden_size: 200
+        emb_size : 20
         """
-
-
         # TODO ========================
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the 
@@ -136,30 +140,33 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
         hidden_states = torch.tensor(hidden)
         print('hidden_state tensor: ', hidden_states.shape)
+        print()
         #hidden_states[,,] = hidden
         logits = torch.tensor((self.seq_len, self.batch_size, self.vocab_size))
+        embedding = self.encoder(inputs) # pass in a 
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
-            
-            embedding = self.encoder(inputs[timestep,:]) # pass in a 
-            x = embedding   #(seq_length 35 , hidden_size 200) Verified 
-            print('after embedding size: ', embedding.shape)
+            # Embedding returned a (seq_len, batch_size, emb_size)
+            # I will iterate over each timestep where(axis==0)
+            x = embedding[timestep,:,:]  
                         
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # Here I work on each layers with 
                 # pre activation:
                 # row index 0 is the firt row
-                y = self.regular_layers[layer](x) + self.rec_layers[layer](hidden_states[layer, i])
+                hidden = self.rec_layers[layer](hidden_states[layer, timestep]
+                y = self.regular_layers[layer](x) + hidden)
                 # layer output
                 x = torch.tanh(y)
                 print('size of thing to store in hidden_states: ', x.shape)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states.append(x, dim=1) # where x is vector size (????)
+                hidden_states = hidden 
 
                 
                 x = self.drop(x)
-            print('After iteration over layers, x: ', x.shape)
+            print('After iteration over layers, shape of x: ', x.shape)
+
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT 
             #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
             logits[timestep,:,:] = self.decoder(x)
