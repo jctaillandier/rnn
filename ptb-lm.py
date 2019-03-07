@@ -107,7 +107,7 @@ parser = argparse.ArgumentParser(description='PyTorch Penn Treebank Language Mod
 # Arguments you may need to set to run different experiments in 4.1 & 4.2.
 parser.add_argument('--data', type=str, default='data',
                     help='location of the data corpus')
-parser.add_argument('--model', type=str, default='RNN',
+parser.add_argument('--model', type=str, default='GRU',
                     help='type of recurrent net (RNN, GRU, TRANSFORMER)')
 parser.add_argument('--optimizer', type=str, default='SGD_LR_SCHEDULE',
                     help='optimization algo to use; SGD, SGD_LR_SCHEDULE, ADAM')
@@ -130,7 +130,7 @@ parser.add_argument('--emb_size', type=int, default=200,
                     help='size of word embeddings')
 parser.add_argument('--num_epochs', type=int, default=40,
                     help='number of epochs to stop after')
-parser.add_argument('--dp_keep_prob', type=float, default=0.65,
+parser.add_argument('--dp_keep_prob', type=float, default=0.35,
                     help='dropout *keep* probability (dp_keep_prob=0 means no dropout')
 
 # Arguments that you may want to make use of / implement more code for
@@ -276,7 +276,7 @@ class Batch:
 
 # LOAD DATA
 print('Loading data from '+args.data)
-raw_data = ptb_raw_data(data_path='rnn/'+args.data)
+raw_data = ptb_raw_data(data_path=args.data)
 train_data, valid_data, test_data, word_to_id, id_2_word = raw_data
 vocab_size = len(word_to_id)
 print('  vocabulary size: {}'.format(vocab_size))
@@ -296,8 +296,7 @@ if args.model == 'RNN':
     model = RNN(emb_size=args.emb_size, hidden_size=args.hidden_size, 
                 seq_len=args.seq_len, batch_size=args.batch_size,
                 vocab_size=vocab_size, num_layers=args.num_layers, 
-                dp_keep_prob=args.dp_keep_prob)
- 
+                dp_keep_prob=args.dp_keep_prob) 
 elif args.model == 'GRU':
     model = GRU(emb_size=args.emb_size, hidden_size=args.hidden_size, 
                 seq_len=args.seq_len, batch_size=args.batch_size,
@@ -321,7 +320,7 @@ elif args.model == 'TRANSFORMER':
 else:
   print("Model type not recognized.")
 
-model.to(device)
+model = model.to(device)
 
 # LOSS FUNCTION
 loss_fn = nn.CrossEntropyLoss()

@@ -138,7 +138,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # inputs to to the {l+1}-st layer (taking the place of the input sequence).
 
         # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
-        hidden_states =hidden
+        hidden_states = hidden
         #hidden_states[,,] = hidden
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         embedding = self.encoder(inputs) # pass in a 
