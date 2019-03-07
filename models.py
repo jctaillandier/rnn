@@ -332,11 +332,8 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
             
         #print('logits final size: ', logits.shape)
         
-        return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states 
+    return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states 
 
-
-
-    return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden
 
   def generate(self, input, hidden, generated_seq_len):
     # TODO ========================
