@@ -151,10 +151,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             x = embedding[timestep,:,:]  
                         
             for layer in range(len(self.regular_layers)): # hidden layers 
-                # Here I work on each layers with 
                 # pre activation:
-                # row index 0 is the firt row
-                hidden = self.rec_layers[layer](hidden_states[layer, timestep])
+
+                hidden = self.rec_layers[layer](hidden_states)
                 y = (self.regular_layers[layer](x) + hidden)
                 # layer output
                 x = torch.tanh(y)
