@@ -167,7 +167,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
-            decoded_ouput = self.decoder(x)
+            decoded_output = self.decoder(x)
             print('decoded output size: ', decoded_output)
 
             ### DECODE --> Non le embedding a un token pour arreter la phrase plus tot
