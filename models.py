@@ -52,7 +52,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
         self.encoder = nn.Embedding(vocab_size, emb_size) # input is an integer, index of word in dict
         # 
-        self.decoder = nn.Linear(num_layers, vocab_size)
+        self.decoder = nn.Linear(emb_size, vocab_size)
         
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
@@ -157,19 +157,18 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 y = (self.regular_layers[layer](x) + hidden)
                 # layer output
                 x = torch.tanh(y)
-                print('size of thing to store in hidden_states: ', x.shape)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
                 hidden_states = hidden 
 
                 
                 x = self.drop(x)
-            print('After iteration over layers, shape of x: ', x.shape)
+            print('After iteration ',self.num_layers,' over layers, shape of x: ', x.shape)
 
-            ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT 
+            ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             #logits[i,:,:] = torch.from_numpy(np.matmul(,x)+  )
-            logits[timestep,:,:] = self.decoder(x)
-
+            decoded_ouput = self.decoder(x)
+            print('decoded output size: ', decoded_output)
 
             ### DECODE --> Non le embedding a un token pour arreter la phrase plus tot
             #########################################
