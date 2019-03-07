@@ -88,7 +88,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # and compute their gradients automatically. You're not obligated to use the
         # provided clones function.
 
-    def init_weights_uniform(self, range=0.1):
+    def init_weights_uniform(self):
         # TODO ========================
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
@@ -97,7 +97,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             data.bias.data.fill_(0)
         
         for index, data in enumerate(self.rec_layers):
-            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
 
     def init_hidden(self):
@@ -273,12 +273,33 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
         for index, data in enumerate(self.regular_layers):
-            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
         
         for index, data in enumerate(self.rec_layers):
-            torch.nn.init.uniform_(data.weight, a=-range, b=range)
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
+
+        for index, data in enumerate(self.reset_layers):
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
+            data.bias.data.fill_(0)
+        
+        for index, data in enumerate(self.forget_layers):
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
+            data.bias.data.fill_(0)
+
+        for index, data in enumerate(self.u_reset_layers):
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
+            data.bias.data.fill_(0)
+        
+        for index, data in enumerate(self.u_forget_layers):
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
+            data.bias.data.fill_(0)
+
+        for index, data in enumerate(self.u_hidden_layers):
+            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
+            data.bias.data.fill_(0)
+
 
   def init_hidden(self):
       
