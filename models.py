@@ -149,13 +149,13 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 # Here I work on each layers with 
                 # pre activation:
                 # row index 0 is the firt row
-                y = self.regular_layers[layer](x) + self.rec_layers[layer](--hidden_states[layer, i]--)
+                y = self.regular_layers[layer](x) + self.rec_layers[layer](hidden_states[layer, i])
                 # layer output
                 x = torch.tanh(y)
                 print('size of thing to store in hidden_states: ', x.shape)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states.append(x, dim=?) # where x is vector size (????)
+                hidden_states.append(x, dim=1) # where x is vector size (????)
 
                 
                 x = self.drop(x)
