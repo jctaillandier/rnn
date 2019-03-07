@@ -138,11 +138,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # inputs to to the {l+1}-st layer (taking the place of the input sequence).
 
         # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
-        hidden_states = torch.tensor(hidden)
-        print('hidden_state tensor: ', hidden_states.shape)
-        print()
+        hidden_states =hidden
         #hidden_states[,,] = hidden
-        logits = torch.empty(1, self.batch_size, self.vocab_size)
+        logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         embedding = self.encoder(inputs) # pass in a 
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
@@ -167,8 +165,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             z = self.decoder(x)
+            print('after decoded at each layer: ', z.shape)
+            print()
             
-            torch.cat((logits, z[self.num_layers-1,:,:]), 0)
+            logits[0,:,:] = z[self.num_layers-1,:,:]
             
         print('logits final size: ', logits.shape)
         
