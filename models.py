@@ -145,6 +145,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         hidden_size: 200
         emb_size : 20
         """
+        print('first layer weights: ', self.regular_layers[0].weights)
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the 
         # inner for loop should iterate over hidden layers of the stack. 
