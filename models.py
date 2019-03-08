@@ -161,6 +161,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
             x = embedding[timestep,:,:]  
+            print('embedding output size: ', x.shape)
             x = x.to(device)
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:
