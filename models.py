@@ -58,9 +58,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
-        self.encoder = nn.Embedding(self.vocab_size, emb_size) # input is an integer, index of word in dict
+        self.encoder = nn.Embedding(self.vocab_size, self.emb_size) # input is an integer, index of word in dict
         # 
-        self.decoder = nn.Linear(emb_size, self.vocab_size)
+        self.decoder = nn.Linear(self.emb_size, self.vocab_size)
         
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
