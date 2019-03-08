@@ -59,11 +59,14 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
         self.encoder = nn.Embedding(self.vocab_size, self.emb_size) # input is an integer, index of word in dict
+        self.encoder = self.encoder.to(device)
+
         # To align sizes between embedding and first layer
         self.first_layer = nn.Linear(self.emb_size, self.hidden_size)
+        self.first_layer = self.first_layer.to(device)
 
         self.decoder = nn.Linear(self.hidden_size, self.vocab_size)
-        
+        self.decoder = self.decoder.to(device)
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
         self.num_layers = num_layers
@@ -152,10 +155,12 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # inputs to to the {l+1}-st layer (taking the place of the input sequence).
 
         # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
+        inputs = inputs.to(device)
         hidden_states = hidden
         hidden_states = hidden_states.to(device)
         #hidden_states[,,] = hidden
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
+        logits = logits.to(device)
         #print('inputs: ', inputs.shape)
         embedding = self.encoder(inputs) # pass in a 
         #print('aksdj ', embedding.shape)
@@ -191,7 +196,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #print()
             
             logits[0,:,:] = z[self.num_layers-1,:]
-            logits = logits.to(device)
         
         #print('logits size: ', logits.shape)   
         
