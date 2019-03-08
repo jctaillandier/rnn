@@ -156,6 +156,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         
         embedding = self.encoder(inputs) # pass in a 
+        print('aksdj ', embedding.shape)
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
             # Embedding returned a (seq_len, batch_size, emb_size)
