@@ -166,7 +166,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
                 hidden_states = hid_temp 
-
                 
                 x = self.drop(x)
             #print('After iteration ',self.num_layers,' over layers, shape of x: ', x.shape)
@@ -178,7 +177,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             
             logits[0,:,:] = z[self.num_layers-1,:,:]
             
-        #print('logits final size: ', logits.shape)
+        print('logits final size: ', logits.shape)
         
         """
         
@@ -278,6 +277,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         
 
   def init_weights_uniform(self):
+      """
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
         for index, data in enumerate(self.regular_layers):
@@ -307,7 +307,15 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         for index, data in enumerate(self.u_hidden_layers):
             torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
+        """
 
+        # Embedding initialized uniform weights and zero bias
+        torch.nn.init.uniform_(self.encoder.weight.data, -0.1, 0.1)
+        #self.encoder.bias.data.uniform_(-0.1, 0.1)
+
+        # Output layer initialized uniform weights and zero bias
+        torch.nn.init.uniform_(self.decoder.weight.data, a=-0.1, b=0.1)
+        self.decoder.bias.data.fill_(0)
 
   def init_hidden(self):
       
