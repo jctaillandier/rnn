@@ -157,13 +157,13 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #hidden_states[,,] = hidden
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         #print('inputs: ', inputs.shape)
-        #embedding = self.encoder(inputs) # pass in a 
+        embedding = self.encoder(inputs) # pass in a 
         #print('aksdj ', embedding.shape)
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
-            x = self.encoder(inputs[timestep,:] ) 
+            x = embedding[timestep,:]
             #print('embedding output size: ', x.shape)
             x = x.to(device)
             for layer in range(len(self.regular_layers)): # hidden layers 
