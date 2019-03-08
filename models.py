@@ -39,7 +39,7 @@ else:
 
 def clones(module, N):
     "A helper function for producing N identical layers (each with their own parameters)."
-    return nn.ModuleList([copy.deepcopy(module) for _ in range(N-1)])
+    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
 
 # Problem 1
 class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities.
