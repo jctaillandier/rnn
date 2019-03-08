@@ -50,7 +50,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
-        self.encoder = nn.Embedding(vocab_size, emb_size) # input is an integer, index of word in dict
+        self.encoder = nn.Embedding(vocab_size, emb_size, _weight=0) # input is an integer, index of word in dict
         # 
         self.decoder = nn.Linear(emb_size, vocab_size)
         
@@ -90,8 +90,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
     def init_weights_uniform(self):
         # TODO ========================
-        # Initialize all the weights uniformly in the range [-range, range]
-        # and all the biases to 0 (in place)
+        # Initialize all the weights default glorot init
         for index, data in enumerate(self.regular_layers):
             torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
@@ -99,6 +98,11 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         for index, data in enumerate(self.rec_layers):
             torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
+
+        # Output layer initialized uniform weights and zero bias
+        torch.nn.init.uniform_(self.decoder.weight, a=-0.1, b=0.1)
+        self.decoder.weight.bias.data.fill_(0)
+
 
     def init_hidden(self):
         # TODO ========================
