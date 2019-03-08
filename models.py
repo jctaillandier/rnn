@@ -184,8 +184,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 x = torch.tanh(x)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
-                hidden_states = hid_temp 
-                
+                hidden_states = x 
                 x = self.drop(x)
             #print('After iteration ',self.num_layers,' over layers, shape of x: ', x.shape)
 
