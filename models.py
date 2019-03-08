@@ -50,7 +50,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
-        self.encoder = nn.Embedding(vocab_size, emb_size, _weight=0) # input is an integer, index of word in dict
+        self.encoder = nn.Embedding(vocab_size, emb_size) # input is an integer, index of word in dict
         # 
         self.decoder = nn.Linear(emb_size, vocab_size)
         
@@ -74,7 +74,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         
 
-        # TODO ========================
         # Initialization of the parameters of the recurrent and fc layers. 
         # Your implementation should support any number of stacked hidden layers 
         # (specified by num_layers), use an input embedding layer, and include fully
@@ -89,7 +88,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # provided clones function.
 
     def init_weights_uniform(self):
-        # TODO ========================
+        """
         # Initialize all the weights default glorot init
         for index, data in enumerate(self.regular_layers):
             torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
@@ -98,14 +97,19 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         for index, data in enumerate(self.rec_layers):
             torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
+        """
+
+        # Embedding initialized uniform weights and zero bias
+        self.encoder.weight.data.uniform_(-0.1, 0.1)
+        self.encoder.bias.data.uniform_(-0.1, 0.1)
 
         # Output layer initialized uniform weights and zero bias
-        torch.nn.init.uniform_(self.decoder.weight, a=-0.1, b=0.1)
-        self.decoder.weight.bias.data.fill_(0)
+        torch.nn.init.uniform_(self.decoder.weight.data, a=-0.1, b=0.1)
+        self.decoder.bias.data.fill_(0)
 
 
     def init_hidden(self):
-        # TODO ========================
+        
         # initialize the hidden states to zero
         """
         This is used for the first mini-batch in an epoch, only.
@@ -128,7 +132,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         hidden_size: 200
         emb_size : 20
         """
-        # TODO ========================
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the 
         # inner for loop should iterate over hidden layers of the stack. 
