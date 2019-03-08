@@ -177,7 +177,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             
             logits[0,:,:] = z[self.num_layers-1,:,:]
             
-        print('logits final size: ', logits.shape)
+        #print('logits final size: ', logits.shape)
         
         """
         
