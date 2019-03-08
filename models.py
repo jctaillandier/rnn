@@ -62,7 +62,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # To align sizes between embedding and first layer
         self.first_layer = nn.Linear(self.emb_size, self.hidden_size)
 
-        self.decoder = nn.Linear(self.emb_size, self.vocab_size)
+        self.decoder = nn.Linear(self.hidden_size, self.vocab_size)
         
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
@@ -78,9 +78,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
         self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
-        self.regular_layers = self.regular_layers.to(device)    
-        print(len(self.rec_layers), ' recurent layers') 
-        print(len(self.regular_layers), ' regular layers')
+        self.regular_layers = self.regular_layers.to(device)   
+
         #Initializing weights
         self.init_weights_uniform()
         
