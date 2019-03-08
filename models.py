@@ -174,6 +174,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             x = embedding[timestep,:]
             #print('embedding output size: ', x.shape)
             x = x.to(device)
+            x = self.drop(x)
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:                
                 hid_temp = self.rec_layers[layer](hidden_states)
