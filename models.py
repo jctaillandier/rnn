@@ -168,9 +168,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 # pre activation:
 
                 hid_temp = self.rec_layers[layer](hidden_states)
-                y = (self.regular_layers[layer](x) + hid_temp)
+                x = (self.regular_layers[layer](x) + hid_temp)
                 # layer output
-                x = torch.tanh(y)
+                x = torch.tanh(x)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
                 hidden_states = hid_temp 
@@ -180,10 +180,12 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             z = self.decoder(x)
+            x.to(device)
             #print('after decoded at each layer: ', z.shape)
             #print()
             
             logits[0,:,:] = z[self.num_layers-1,:,:]
+            logits.to(device)
             
         #print('logits final size: ', logits.shape)
         
