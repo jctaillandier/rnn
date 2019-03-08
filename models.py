@@ -75,9 +75,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
-        self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)
+        self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)   
         self.regular_layers = self.regular_layers.to(device)    
         
         #Initializing weights
@@ -170,10 +170,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 # pre activation:                
                 hid_temp = self.rec_layers[layer](hidden_states)
                 # Layer Affine transform
-                if layer == 0 :
-                    x = self.first_layer(x)
-                else:
-                    x = (self.regular_layers[layer](x) + hid_temp)
+                #if layer == 0 :
+                #    x = self.first_layer(x)
+                #else:
+                x = (self.regular_layers[layer](x) + hid_temp)
 
                 # layer activation
                 x = torch.tanh(x)
