@@ -79,7 +79,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.rec_layers = self.rec_layers.to(device)
         self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
         self.regular_layers = self.regular_layers.to(device)    
-        
+        print(len(self.rec_layers), ' recurent layers') 
+        print(len(self.regular_layers), ' regular layers')
         #Initializing weights
         self.init_weights_uniform()
         
@@ -171,7 +172,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 hid_temp = self.rec_layers[layer](hidden_states)
                 # Layer Affine transform
                 if layer == 0 :
-                    x = self.first_layer(x)
+                    x = self.first_layer(x + hid_temp)
                 else:
                     x = (self.regular_layers[layer](x) + hid_temp)
 
