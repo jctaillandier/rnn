@@ -58,9 +58,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
-        self.encoder = nn.Embedding(vocab_size, emb_size) # input is an integer, index of word in dict
+        self.encoder = nn.Embedding(self.vocab_size, emb_size) # input is an integer, index of word in dict
         # 
-        self.decoder = nn.Linear(emb_size, vocab_size)
+        self.decoder = nn.Linear(emb_size, self.vocab_size)
         
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
@@ -71,13 +71,12 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #            Do not apply dropout on recurrent connections.
         self.drop = nn.Dropout(1-dp_keep_prob)
         
-        
         # Creating an array of layers of identical size
         # use module list inside clone()            
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
-        self.rec_layers.to(device)
+        self.rec_layers = self.rec_layers.to(device)
         self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)   
-        self.regular_layers.to(device)    
+        self.regular_layers = self.regular_layers.to(device)    
         
         #Initializing weights
         self.init_weights_uniform()
@@ -104,7 +103,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #    torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
         #    data.bias.data.fill_(0)
         
-
         # Embedding initialized uniform weights and zero bias
         torch.nn.init.uniform_(self.encoder.weight.data, -0.1, 0.1)
         #self.encoder.bias.data.uniform_(-0.1, 0.1)
