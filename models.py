@@ -172,7 +172,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 hid_temp = self.rec_layers[layer](hidden_states)
                 # Layer Affine transform
                 if layer == 0 :
-                    x = self.first_layer(x + hid_temp)
+                    x = self.first_layer(x) + hid_temp
                 else:
                     x = (self.regular_layers[layer](x) + hid_temp)
 
