@@ -277,7 +277,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         
 
   def init_weights_uniform(self):
-      """
+    
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
         for index, data in enumerate(self.regular_layers):
@@ -307,7 +307,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         for index, data in enumerate(self.u_hidden_layers):
             torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
             data.bias.data.fill_(0)
-        """
+    
 
         # Embedding initialized uniform weights and zero bias
         torch.nn.init.uniform_(self.encoder.weight.data, -0.1, 0.1)
