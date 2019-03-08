@@ -60,7 +60,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
         self.encoder = nn.Embedding(self.vocab_size, self.emb_size) # input is an integer, index of word in dict
         # To align sizes between embedding and first layer
-        self.first_layer = nn.Linear(self.emb.size, self.hidden_size)
+        self.first_layer = nn.Linear(self.emb_size, self.hidden_size)
 
         self.decoder = nn.Linear(self.emb_size, self.vocab_size)
         
