@@ -67,7 +67,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # Creating an array of layers of identical size
         # use module list inside clone()            
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)        
+        self.rec_layers.to(device)
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)   
+        self.regular_layers.to(device)    
         
         #Initializing weights
         self.init_weights_uniform()
@@ -143,15 +145,17 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
         # to store hidden states at each layers, time step (num_layers, batch_size, hidden_size)
         hidden_states = hidden
+        hidden_states.to(device)
         #hidden_states[,,] = hidden
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
+        logits.to(device)
         embedding = self.encoder(inputs) # pass in a 
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
             x = embedding[timestep,:,:]  
-            
+            x.to(device)
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:
 
