@@ -62,8 +62,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.encoder = self.encoder.to(device)
 
         # To align sizes between embedding and first layer
-        self.first_layer = nn.Linear(self.emb_size, self.hidden_size)
-        self.first_layer = self.first_layer.to(device)
+        #self.first_layer = nn.Linear(self.emb_size, self.hidden_size)
+        #self.first_layer = self.first_layer.to(device)
 
         self.decoder = nn.Linear(self.hidden_size, self.vocab_size)
         self.decoder = self.decoder.to(device)
@@ -80,7 +80,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # use module list inside clone()            
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
+
         self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
+        #first layer to match embedding
+        self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
         self.regular_layers = self.regular_layers.to(device)   
 
         #Initializing weights
@@ -174,11 +177,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:                
                 hid_temp = self.rec_layers[layer](hidden_states)
-                # Layer Affine transform
-                if layer == 0 :
-                    x = self.first_layer(x) + hid_temp
-                else:
-                    x = (self.regular_layers[layer](x) + hid_temp)
+                
+                x = (self.regular_layers[layer](x) + hid_temp)
 
                 # layer activation
                 x = torch.tanh(x)
