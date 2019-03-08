@@ -105,8 +105,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
         # Output layer initialized uniform weights and zero bias
         torch.nn.init.uniform_(self.decoder.weight.data, a=-0.1, b=0.1)
-        #self.decoder.bias.data.fill_(0)
-        torch.zeros(self.decoder.bias.data, 0)
+        self.decoder.bias.data.fill_(0)
 
 
 
