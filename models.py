@@ -100,7 +100,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         """
 
         # Embedding initialized uniform weights and zero bias
-        self.encoder.weight.data.uniform_(-0.1, 0.1)
+        torch.nn.init.uniform_(self.encoder.weight.data, -0.1, 0.1)
         #self.encoder.bias.data.uniform_(-0.1, 0.1)
 
         # Output layer initialized uniform weights and zero bias
