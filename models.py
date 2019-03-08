@@ -59,7 +59,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #seq_len:      The length of the input sequences
         #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
         self.encoder = nn.Embedding(self.vocab_size, self.emb_size) # input is an integer, index of word in dict
-        # 
+        # To align sizes between embedding and first layer
+        self.first_layer = nn.Linear(self.emb.size, self.hidden_size)
+
         self.decoder = nn.Linear(self.emb_size, self.vocab_size)
         
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
@@ -73,9 +75,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
-        self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
+        self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)
         self.rec_layers = self.rec_layers.to(device)
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)   
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
         self.regular_layers = self.regular_layers.to(device)    
         
         #Initializing weights
@@ -154,7 +156,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         hidden_states = hidden_states.to(device)
         #hidden_states[,,] = hidden
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
-        print('inputs: ', inputs.shape)
+        #print('inputs: ', inputs.shape)
         #embedding = self.encoder(inputs) # pass in a 
         #print('aksdj ', embedding.shape)
         
@@ -162,14 +164,18 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
             x = self.encoder(inputs[timestep,:] ) 
-            print('embedding output size: ', x.shape)
+            #print('embedding output size: ', x.shape)
             x = x.to(device)
             for layer in range(len(self.regular_layers)): # hidden layers 
-                # pre activation:
-
+                # pre activation:                
                 hid_temp = self.rec_layers[layer](hidden_states)
-                x = (self.regular_layers[layer](x) + hid_temp)
-                # layer output
+                # Layer Affine transform
+                if layer == 0 :
+                    x = self.first_layer(x)
+                else:
+                    x = (self.regular_layers[layer](x) + hid_temp)
+
+                # layer activation
                 x = torch.tanh(x)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
