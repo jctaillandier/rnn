@@ -108,8 +108,11 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Initialize all the weights default glorot init
         for index, data in enumerate(self.regular_layers):
-            torch.nn.init.xavier_uniform_(data.weight)
-            torch.nn.init.xavier_uniform_(self.rec_layers[index].weight)
+            k = torch.sqrt(1/self.hidden_size)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+            torch.nn.init.uniform_(self.rec_layers[index].weight, -k, k)
+            torch.nn.init.uniform_(self.rec_layers[index].bias, -k, k)
             
         
         # Embedding initialized uniform weights and zero bias
@@ -165,8 +168,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
        
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         logits = logits.to(device)
-        #print('inputs: ', inputs.shape)
-        embedding = self.encoder(inputs) # pass in a 
+        
+        embedding = self.encoder(inputs) 
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
             # Embedding returned a (seq_len, batch_size, emb_size)
@@ -194,7 +197,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
     
             logits[timestep,:,:] = z[self.num_layers-1,:]
-        print('logits channel values for last timestep: ', logits[self.seq_len,:,:])   
+        #print('logits channel values for last timestep: ', logits[self.seq_len-1,:,:])   
         
         """
         
