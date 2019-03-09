@@ -178,27 +178,25 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             for layer in range(len(self.regular_layers)): # hidden layers 
                 # pre activation:                
                 hid_temp = self.rec_layers[layer](hidden_states)
-                
                 x = (self.regular_layers[layer](x) + hid_temp)
 
                 # layer activation
                 x = torch.tanh(x)
                 # to use next timestep:
-                # (num_layers, batch_size, hidden_size)
                 hidden_states = x 
                 x = self.drop(x)
-            #print('After iteration ',self.num_layers,' over layers, shape of x: ', x.shape)
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             z = self.decoder(x)
             z = z.to(device)
-            print('after decoded at each layer: ', z.shape)
-            #print()
+            #print('after decoded at each layer: ', z.shape)
+            # z is shape (num_layers, batch_size, vocab size)
+            #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
 
             #torch.cat((logits, torch.unsqueeze(z[self.num_layers-1,:], 0)), dim=0)
             # or        
-            #logits[timestep,:,:] = z[self.num_layers-1,:]
-            #print('logits channel values: ', logits[timestep,:,:])   
+            logits[timestep,:,:] = z[0,:]
+            print('logits channel values for current timestep: ', logits[timestep,:,:])   
         
         """
         
