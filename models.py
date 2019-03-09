@@ -81,7 +81,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
 
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size,  bias=False), num_layers-1)   
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
         #first layer to match embedding
         self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
         self.regular_layers = self.regular_layers.to(device)   
