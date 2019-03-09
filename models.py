@@ -192,10 +192,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #print('after decoded at each layer: ', z.shape)
             # z is shape (num_layers, batch_size, vocab size)
             #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
-
-            #torch.cat((logits, torch.unsqueeze(z[self.num_layers-1,:], 0)), dim=0)
-            # or        
-            logits[timestep,:,:] = z[0,:]
+    
+            logits[timestep,:,:] = z[self.num_layers-1,:]
             #print('logits channel values for current timestep: ', logits[timestep,:,:])   
         
         """
