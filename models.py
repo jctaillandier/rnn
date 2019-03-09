@@ -194,7 +194,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
     
             logits[timestep,:,:] = z[self.num_layers-1,:]
-            #print('logits channel values for current timestep: ', logits[timestep,:,:])   
+        print('logits channel values for last timestep: ', logits[self.seq_len-1,:,:])   
         
         """
         
