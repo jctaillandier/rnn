@@ -114,7 +114,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         
         # Embedding initialized uniform weights and zero bias
         torch.nn.init.uniform_(self.encoder.weight.data, -0.1, 0.1)
-        #self.encoder.bias.data.uniform_(-0.1, 0.1)
+        #self.encoder.bias.data.fill_(0)
 
         # Output layer initialized uniform weights and zero bias
         torch.nn.init.uniform_(self.decoder.weight.data, a=-0.1, b=0.1)
@@ -196,7 +196,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #print()
             
             logits[0,:,:] = z[self.num_layers-1,:]
-        
+            print('logits shape: ', logits.shape)
         #print('logits size: ', logits.shape)   
         
         """
