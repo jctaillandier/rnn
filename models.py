@@ -195,10 +195,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #print('after decoded at each layer: ', z.shape)
             #print()
 
-            torch.cat((logits, torch.unsqueeze(z[self.num_layers-1,:], 0)), dim=0)
+            #torch.cat((logits, torch.unsqueeze(z[self.num_layers-1,:], 0)), dim=0)
             # or        
             #logits[timestep,:,:] = z[self.num_layers-1,:]
-            print('logits channel values: ', logits[timestep,:,:])   
+            #print('logits channel values: ', logits[timestep,:,:])   
         
         """
         
