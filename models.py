@@ -195,8 +195,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #print('after decoded at each layer: ', z.shape)
             #print()
             
-            logits[0,:,:] = z[self.num_layers-1,:]
-            print('logits channel: ', logits[timestep,:,:])
+            logits[timestep,:,:] = z[self.num_layers-1,:]
         #print('logits size: ', logits.shape)   
         
         """
