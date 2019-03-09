@@ -107,9 +107,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
     def init_weights_uniform(self):
         
         # Initialize all the weights default glorot init
-        for index, data in enumerate(self.regular_layers):
-            torch.nn.init.xavier_uniform_(data.weight)
-            torch.nn.init.xavier_uniform_(self.rec_layers[index].weight)
+        #for index, data in enumerate(self.regular_layers):
+        #    torch.nn.init.xavier_uniform_(data.weight)
+        #    torch.nn.init.xavier_uniform_(self.rec_layers[index].weight)
             
         
         # Embedding initialized uniform weights and zero bias
