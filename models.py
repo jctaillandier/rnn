@@ -192,7 +192,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
             z = self.decoder(x)
             z = z.to(device)
-            #print('after decoded at each layer: ', z.shape)
+            print('after decoded at each layer: ', z.shape)
             #print()
 
             #torch.cat((logits, torch.unsqueeze(z[self.num_layers-1,:], 0)), dim=0)
