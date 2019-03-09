@@ -81,7 +81,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
 
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size,  bias=False), num_layers-1)   
         #first layer to match embedding
         self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
         self.regular_layers = self.regular_layers.to(device)   
@@ -107,9 +107,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
     def init_weights_uniform(self):
         
         # Initialize all the weights default glorot init
-        #for index, data in enumerate(self.regular_layers):
-        #    torch.nn.init.xavier_uniform_(data.weight)
-        #    torch.nn.init.xavier_uniform_(self.rec_layers[index].weight)
+        for index, data in enumerate(self.regular_layers):
+            torch.nn.init.xavier_uniform_(data.weight)
+            torch.nn.init.xavier_uniform_(self.rec_layers[index].weight)
             
         
         # Embedding initialized uniform weights and zero bias
