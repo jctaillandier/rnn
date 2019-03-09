@@ -109,10 +109,10 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # Initialize all the weights default glorot init
         for index, data in enumerate(self.regular_layers):
             k = np.sqrt(1/self.hidden_size)
-            torch.nn.init.uniform_(data.weight, -k, k)
-            torch.nn.init.uniform_(data.bias, -k, k)
-            torch.nn.init.uniform_(self.rec_layers[index].weight, -k, k)
-            torch.nn.init.uniform_(self.rec_layers[index].bias, -k, k)
+            torch.nn.init.uniform(data.weight, -k, k)
+            torch.nn.init.uniform(data.bias, -k, k)
+            torch.nn.init.uniform(self.rec_layers[index].weight, -k, k)
+            torch.nn.init.uniform(self.rec_layers[index].bias, -k, k)
             
         
         # Embedding initialized uniform weights and zero bias
