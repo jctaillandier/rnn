@@ -74,7 +74,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #dp_keep_prob: The probability of *not* dropping out units in the 
         #             non-recurrent connections.
         #            Do not apply dropout on recurrent connections.
-        self.drop = nn.Dropout(dp_keep_prob)
+        self.drop = nn.Dropout(1-dp_keep_prob)
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
@@ -109,7 +109,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # Initialize all the weights default glorot init
         for index, data in enumerate(self.regular_layers):
             torch.nn.init.xavier_uniform_(data.weight)
-            torch.nn.init.xavier_uniform_(rec_layers[index].weight)
+            torch.nn.init.xavier_uniform_(self.rec_layers[index].weight)
             
         
         # Embedding initialized uniform weights and zero bias
