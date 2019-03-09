@@ -163,7 +163,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         hidden_states = hidden
         hidden_states = hidden_states.to(device)
        
-        logits = torch.empty( self.batch_size, self.vocab_size)
+        logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         logits = logits.to(device)
         #print('inputs: ', inputs.shape)
         embedding = self.encoder(inputs) # pass in a 
@@ -195,7 +195,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             #print('after decoded at each layer: ', z.shape)
             #print()
 
-            torch.stack((logits, z[self.num_layers-1,:]), dim=0)
+            torch.cat((logits, torch.unsqueeze(z[self.num_layers-1,:], 0)), dim=0)
             # or        
             #logits[timestep,:,:] = z[self.num_layers-1,:]
             print('logits size: ', logits.shape)   
