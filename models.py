@@ -74,7 +74,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #dp_keep_prob: The probability of *not* dropping out units in the 
         #             non-recurrent connections.
         #            Do not apply dropout on recurrent connections.
-        self.drop = nn.Dropout(1-dp_keep_prob)
+        self.drop = nn.Dropout(dp_keep_prob)
         
         # Creating an array of layers of identical size
         # use module list inside clone()            
@@ -161,12 +161,11 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         inputs = inputs.to(device)
         hidden_states = hidden
         hidden_states = hidden_states.to(device)
-        #hidden_states[,,] = hidden
+       
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         logits = logits.to(device)
         #print('inputs: ', inputs.shape)
         embedding = self.encoder(inputs) # pass in a 
-        #print('aksdj ', embedding.shape)
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
             # Embedding returned a (seq_len, batch_size, emb_size)
