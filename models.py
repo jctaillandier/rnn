@@ -75,7 +75,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #             non-recurrent connections.
         #            Do not apply dropout on recurrent connections.
         self.drop = nn.Dropout(1-dp_keep_prob)
-        
+        self.drop = self.drop.to(device)
         # Creating an array of layers of identical size
         # use module list inside clone()            
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
@@ -269,8 +269,10 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     #seq_len:      The length of the input sequences
     #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
     self.encoder = nn.Embedding(self.vocab_size, self.emb_size) # input is an integer, index of word in dict
+    self.encoder = self.encoder.to(device)
     # 
     self.decoder = nn.Linear(self.hidden_size, self.vocab_size)
+    self.decoder = self.decoder.to(device)
     
     #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
     #              each time-step)
@@ -280,11 +282,15 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     #             non-recurrent connections.
     #            Do not apply dropout on recurrent connections.
     self.drop = nn.Dropout(1-dp_keep_prob)
+    self.drop = self.drop.to(device)
     
     # Creating an array of layers of identical size
-    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
-    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)       
-    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
+    self.u_reset_layers = self.u_reset_layers.to(device)
+    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
+    self.u_forget_layers = self.u_forget_layers.to(device)       
+    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
+    self.u_hidden_layers = self.u_hidden_layers.to(device)
 
     #Following three moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
     #self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
@@ -292,13 +298,15 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
 
     self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
     self.reset_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
+    self.reset_layers = self.reset_layers.to(device)
 
     self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
     self.forget_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
-    
+    self.forget_layers =  self.forget_layers.to(device)
+
     self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
     self.rec_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
-
+    self.rec_layers = self.rec_layers.to(device)
 
 
     #Initializing weights
@@ -399,8 +407,8 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 #print('before decoding size: ', hid_timestep.shape)
                 x = self.drop(hid_timestep)
 
-            z = self.decoder(x).to(device)
-            #z = z.to(device)
+            z = self.decoder(x)
+            z = z.to(device)
             #print('after decoded at each layer: ', z.shape)
             #print()
             
