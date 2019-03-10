@@ -311,9 +311,6 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         # and all the biases to 0 (in place)
         
         k = np.sqrt(1/self.hidden_size)
-        for index, data in enumerate(self.regular_layers):
-            torch.nn.init.uniform_(data.weight, -k, k)
-            torch.nn.init.uniform_(data.bias, -k, k)
         
         for index, data in enumerate(self.rec_layers):
             torch.nn.init.uniform_(data.weight, -k, k)
