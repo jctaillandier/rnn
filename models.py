@@ -396,11 +396,11 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 # (num_layers, batch_size, hidden_size)
                 hidden_states = hid_timestep 
 
-                
+                print('before decoding size: ', hid_timestep.shape)
                 x = self.drop(hid_timestep)
 
-            z = self.decoder(x)
-            z = z.to(device)
+            z = self.decoder(x).to(device)
+            #z = z.to(device)
             #print('after decoded at each layer: ', z.shape)
             #print()
             
