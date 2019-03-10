@@ -286,14 +286,15 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)       
     self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
 
-    #Following four moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
-    self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
-    self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
+    #Following three moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
+    #self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
+    #self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
     self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
     self.reset_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
     self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
+    self.forget_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
     
     self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
     self.rec_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
@@ -376,7 +377,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
             x = x.to(device)
             x = self.drop(x)
 
-            for layer in range(len(self.regular_layers)): # hidden layers 
+            for layer in range(len(self.rec_layers)): # hidden layers 
                 
                 reset = self.reset_layers[layer](x)
                 u_reset_temp = self.u_reset_layers[layer](hidden_states)
@@ -394,7 +395,6 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
 
                 hid_timestep = ((1-forget_temp) * hidden_states) + (forget_temp * h_wiggle)
 
-                #y = (self.regular_layers[layer](x) + hid_temp)
                 # to use next timestep:
                 # (num_layers, batch_size, hidden_size)
                 hidden_states = hid_timestep 
