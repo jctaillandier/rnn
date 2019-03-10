@@ -285,11 +285,16 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
              
     self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
 
+    #Following three moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
     self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
     self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
-    self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
-    self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+    self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
+    self.reset_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
+
+    self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
+    self.forget_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
+
     self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
     self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)       
     self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
@@ -379,7 +384,10 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 forget = self.forget_layers[layer](x)
                 u_forget_temp =self.u_forget_layers[layer](hidden_states)
                 forget_temp = torch.sigmoid(forget + u_forget_temp)
-
+                ####
+                #print('shape of reset r_t: '. reset_temp.shape)
+                #print('shape of hidden states: '. hidden_states.shape)
+                ###
                 h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](reset_temp * hidden_states)
                 h_wiggle = torch.tanh(h_wiggle)
 
