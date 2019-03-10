@@ -380,10 +380,10 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 u_forget_temp =self.u_forget_layers[layer](hidden_states)
                 forget_temp = torch.sigmoid(forget + u_forget_temp)
 
-                h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](torch.ger(reset_temp, hidden_states))
+                h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](torch.bmm(reset_temp, hidden_states))
                 h_wiggle = torch.tanh(h_wiggle)
 
-                hid_timestep = torch.ger((1-forget_temp), hidden_states) + torch.ger(forget_temp, h_wiggle)
+                hid_timestep = torch.ger((1-forget_temp), hidden_states) + torch.bmm(forget_temp, h_wiggle)
 
                 #y = (self.regular_layers[layer](x) + hid_temp)
                 # to use next timestep:
