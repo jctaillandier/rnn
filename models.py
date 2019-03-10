@@ -105,18 +105,17 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # provided clones function.
 
     def init_weights_uniform(self):
-        
-        # Initialize all the weights default glorot init
+        k = np.sqrt(1/self.hidden_size)
+        # Initialize all the weights uniformed [-k, k]
         for index, data in enumerate(self.regular_layers):
-            k = np.sqrt(1/self.hidden_size)
             torch.nn.init.uniform_(data.weight.data, -k, k)
             torch.nn.init.uniform_(data.bias.data, -k, k)
             torch.nn.init.uniform_(self.rec_layers[index].weight.data, -k, k)
             torch.nn.init.uniform_(self.rec_layers[index].bias.data, -k, k)
-            
         
         # Embedding initialized uniform weights and zero bias
         torch.nn.init.uniform_(self.encoder.weight.data, -0.1, 0.1)
+        # no bias in encoder
         #self.encoder.bias.data.fill_(0)
 
         # Output layer initialized uniform weights and zero bias
@@ -170,6 +169,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         logits = logits.to(device)
         
         embedding = self.encoder(inputs) 
+        embedding = embedding.to(device)
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
             # Embedding returned a (seq_len, batch_size, emb_size)
@@ -284,13 +284,13 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     
     # Creating an array of layers of identical size
              
-    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers) 
-    self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers) 
-    self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)       
-    self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)  
-    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)       
-    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)       
-    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
+    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
+    self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
+    self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+    self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)       
+    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
 
     #Initializing weights
     self.init_weights_uniform()
@@ -300,33 +300,35 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
+        
+        k = np.sqrt(1/self.hidden_size)
         for index, data in enumerate(self.regular_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
         
         for index, data in enumerate(self.rec_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
 
         for index, data in enumerate(self.reset_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
         
         for index, data in enumerate(self.forget_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
 
         for index, data in enumerate(self.u_reset_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
         
         for index, data in enumerate(self.u_forget_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
 
         for index, data in enumerate(self.u_hidden_layers):
-            torch.nn.init.uniform_(data.weight, a=-0.1, b=0.1)
-            data.bias.data.fill_(0)
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
     
 
         # Embedding initialized uniform weights and zero bias
