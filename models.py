@@ -268,9 +268,9 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     
     #seq_len:      The length of the input sequences
     #vocab_size:   The number of tokens in the vocabulary (10,000 for Penn TreeBank)
-    self.encoder = nn.Embedding(vocab_size, emb_size) # input is an integer, index of word in dict
+    self.encoder = nn.Embedding(self.vocab_size, self.emb_size) # input is an integer, index of word in dict
     # 
-    self.decoder = nn.Linear(emb_size, vocab_size)
+    self.decoder = nn.Linear(self.hidden_size, self.vocab_size)
     
     #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
     #              each time-step)
@@ -396,7 +396,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 # (num_layers, batch_size, hidden_size)
                 hidden_states = hid_timestep 
 
-                print('before decoding size: ', hid_timestep.shape)
+                #print('before decoding size: ', hid_timestep.shape)
                 x = self.drop(hid_timestep)
 
             z = self.decoder(x).to(device)
