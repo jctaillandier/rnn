@@ -296,7 +296,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
     self.forget_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
     
-    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
+    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
     self.rec_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
 
