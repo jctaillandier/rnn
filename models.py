@@ -282,10 +282,11 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.drop = nn.Dropout(1-dp_keep_prob)
     
     # Creating an array of layers of identical size
-             
-    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
+    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)       
+    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
 
-    #Following three moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
+    #Following four moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
     self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
     self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
@@ -293,11 +294,11 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.reset_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
     self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
-    self.forget_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
+    
+    self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
+    self.rec_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
-    self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
-    self.u_forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)       
-    self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
+
 
     #Initializing weights
     self.init_weights_uniform()
