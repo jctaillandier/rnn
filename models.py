@@ -123,7 +123,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.decoder.bias.data.fill_(0)
 
 
-
     def init_hidden(self):
         
         # initialize the hidden states to zero
@@ -168,7 +167,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
         logits = logits.to(device)
         
-        embedding = self.encoder(inputs) 
+        embedding = self.encoder(inputs)
         embedding = embedding.to(device)
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
@@ -189,7 +188,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 hidden_states = x 
                 x = self.drop(x)
 
-            ## AJOUTER LINEAR LAYER SANS ACTIVATION, DROPOUT
+            ## AJOUTER LINEAR LAYER SANS ACTIVATION
             z = self.decoder(x)
             z = z.to(device)
             #print('after decoded at each layer: ', z.shape)
@@ -285,7 +284,10 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     # Creating an array of layers of identical size
              
     self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
-    self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers).to(device)
+
+    self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
+    self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
+
     self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
     self.forget_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
     self.u_reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers).to(device)
@@ -352,14 +354,22 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
         emb_size : 20
         """
 
-        hidden_states =hidden
-
+        inputs = inputs.to(device)
+        hidden_states = hidden
+        hidden_states = hidden_states.to(device)
+       
         logits = torch.empty(self.seq_len, self.batch_size, self.vocab_size)
-        embedding = self.encoder(inputs) # pass in a 
+        logits = logits.to(device)
+        
+        embedding = self.encoder(inputs)
+        embedding = embedding.to(device)
         
         for timestep in range(inputs.shape[0]):  # Timesteps / word
-            x = embedding[timestep,:,:]  
-            
+            x = embedding[timestep,:]
+
+            x = x.to(device)
+            x = self.drop(x)
+
             for layer in range(len(self.regular_layers)): # hidden layers 
                 
                 reset = self.reset_layers[layer](x)
@@ -384,10 +394,11 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
                 x = self.drop(hid_timestep)
 
             z = self.decoder(x)
+            z = z.to(device)
             #print('after decoded at each layer: ', z.shape)
             #print()
             
-            logits[0,:,:] = z[self.num_layers-1,:,:]
+            logits[timestep,:,:] = z[self.num_layers-1,:]
             
         #print('logits final size: ', logits.shape)
         
