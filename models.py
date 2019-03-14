@@ -500,11 +500,11 @@ class MultiHeadedAttention(nn.Module):
         #self.encoder = nn.Embedding(vocab_size, n_units) 
         #self.encoder = self.encoder.to(device)
 
-        self.w_k = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_k = clones(nn.Linear(self.d_k, self.n_units), n_heads)
         self.w_k = self.w_k.to(device)
-        self.w_q = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_q = clones(nn.Linear(self.d_k, self.n_units), n_heads)
         self.w_q = self.w_q.to(device)
-        self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_v = clones(nn.Linear(self.d_k, self.n_units), n_heads)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(n_heads*n_units ,n_units)
@@ -538,7 +538,7 @@ class MultiHeadedAttention(nn.Module):
         if s is not None :
             x = torch.exp(x)*s
 
-        return torch.nn.softmax(x_tilde)
+        return torch.nn.softmax(x)
 
 
     def forward(self, query, key, value, mask=None):
@@ -553,7 +553,7 @@ class MultiHeadedAttention(nn.Module):
 
         for head in range(len(self.w_k)):
             for timestep in range(value.shape[1]):
-                print('shape of key: ', key.shape)
+
                 x = self.w_q[head](query[:,timestep ,  :])
                 y = torch.t(self.w_k[head](key[:, timestep,  :]))
                 z = torch.mm(x,y) / (np.sqrt(self.d_k))
