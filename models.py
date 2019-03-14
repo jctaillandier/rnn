@@ -558,7 +558,7 @@ class MultiHeadedAttention(nn.Module):
                 y = self.w_k[head](torch.t(key[:, :, :, head]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
                 z = z.to(device)
-
+                print('shape of A_i: ', z.shape)
                 z = self.softmaxed(z, mask)
                 
                 # Dropout applied to attention values
