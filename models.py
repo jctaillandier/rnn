@@ -533,8 +533,9 @@ class MultiHeadedAttention(nn.Module):
 
         torch.nn.init.uniform_(self.w_o.weight, -k, k)
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
+        
     def softmasked(self, x , s):
-        if s != None :
+        if s is not None :
             x = torch.exp(x)*s
 
         return torch.nn.softmax(x_tilde)
