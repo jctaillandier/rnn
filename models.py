@@ -551,11 +551,11 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = torch.empty((key.shape[0], seq_len, seq_len))
+        z_cat = torch.empty((value.shape[0], value.shape[1], self.n_units, self.d_k))
         #for timestep in range(value.shape[1]):
         for head in range(len(self.w_k)):
-                x = self.w_q[head](query[:, timestep, :, head])
-                y = self.w_k[head](torch.t(key[:, timestep, :, head]))
+                x = self.w_q[head](query[:, :, :, head])
+                y = self.w_k[head](torch.t(key[:, :, :, head]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
                 z = z.to(device)
 
@@ -564,7 +564,7 @@ class MultiHeadedAttention(nn.Module):
                 # Dropout applied to attention values
                 z = self.drop(z)
 
-                z = torch.mm(z, self.w_v[head](value[:, timestep, :, head]))
+                z = torch.mm(z, self.w_v[head](value[:, :, :, head]))
                 #by now z is size (batch, )
 
                 z_cat.cat(z)
