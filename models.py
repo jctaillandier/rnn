@@ -554,18 +554,18 @@ class MultiHeadedAttention(nn.Module):
         for head in range(len(self.w_k)):
             for timestep in range(value.shape[1]):
 
-                x = self.w_q[head](query[:,timestep ,  :])
-                y = torch.t(self.w_k[head](key[:, timestep,  :]))
+                x = self.w_q[head](query[:, timestep , head])
+                y = torch.t(self.w_k[head](key[:, timestep,  head]))
                 z = torch.mm(x,y) / (np.sqrt(self.d_k))
                 z = z.to(device)
                 print('shape of A_i: ', z.shape)
+                # by now z is size (batch, batch) ---> can't be good
                 z = self.softmasked(z, mask)
                 
                 # Dropout applied to attention values
                 z = self.drop(z)
 
-                z = torch.mm(z, self.w_v[head](value[:, timestep, head]))
-                #by now z is size (batch, )
+                z = torch.mm(z, self.w_v[head](value[:, timestep, :]))
 
                 z_cat.cat(z)
 
