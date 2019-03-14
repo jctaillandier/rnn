@@ -535,7 +535,8 @@ class MultiHeadedAttention(nn.Module):
         torch.nn.init.uniform_(w_o.weight, -k, k)
         torch.nn.init.uniform_(w_o.bias, -k, k)
     def softmaxed(self, x , s):
-        x_tilde = torch.exp(x)*s
+        if s != None :
+            x = torch.exp(x)*s
 
         return torch.nn.softmax(x_tilde)
 
@@ -547,20 +548,26 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = totch.empty(())
+        z_cat = totch.empty((batch_size, seq_len, seq_len))
         #for timestep in range(value.shape[1]):
             for head in range(len(self.w_k)):
                 x = self.w_q[head](query[:, timestep, :, head])
                 y = self.w_k[head](torch.t(key[:, timestep, :, head]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
                 z = z.to(device)
-                z = self.softmaxed(z)
+
+                z = self.softmaxed(z, mask)
+                
+                # Dropout applied to attention values
+                z = self.drop(z)
 
                 z = torch.mm(z, self.w_v[head](value[:, timestep, :, head]))
+                #by now z is size (batch, )
 
                 z_cat.cat(z)
+
             out = self.w_o(z_cat)
-            
+
         return # size: (batch_size, seq_len, self.n_units)
 
 
