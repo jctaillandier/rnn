@@ -287,10 +287,6 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
     self.u_hidden_layers = self.u_hidden_layers.to(device)
 
-    #Following three moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
-    #self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
-    #self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
-
     self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
     self.reset_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
     self.reset_layers = self.reset_layers.to(device)
@@ -537,7 +533,7 @@ class MultiHeadedAttention(nn.Module):
 
         torch.nn.init.uniform_(self.w_o.weight, -k, k)
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
-    def softmaxed(self, x , s):
+    def softmasked(self, x , s):
         if s != None :
             x = torch.exp(x)*s
 
@@ -557,12 +553,12 @@ class MultiHeadedAttention(nn.Module):
         for head in range(len(self.w_k)):
             for timestep in range(value.shape[1]):
                 print('shape of key: ', key.shape)
-                x = self.w_q[head](query[:,timestep ,  head])
-                y = self.w_k[head](torch.t(key[:, timestep,  head]))
+                x = self.w_q[head](query[:,timestep ,  :])
+                y = torch.t(self.w_k[head](key[:, timestep,  :]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
                 z = z.to(device)
                 print('shape of A_i: ', z.shape)
-                z = self.softmaxed(z, mask)
+                z = self.softmasked(z, mask)
                 
                 # Dropout applied to attention values
                 z = self.drop(z)
