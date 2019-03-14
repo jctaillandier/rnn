@@ -500,11 +500,11 @@ class MultiHeadedAttention(nn.Module):
         #self.encoder = nn.Embedding(vocab_size, n_units) 
         #self.encoder = self.encoder.to(device)
 
-        self.w_k = clones(nn.Linear(self.d_k, self.n_units), n_heads)
+        self.w_k = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_k = self.w_k.to(device)
-        self.w_q = clones(nn.Linear(self.d_k, self.n_units), n_heads)
+        self.w_q = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_q = self.w_q.to(device)
-        self.w_v = clones(nn.Linear(self.d_k, self.n_units), n_heads)
+        self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(n_heads*n_units ,n_units)
