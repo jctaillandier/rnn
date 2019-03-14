@@ -140,12 +140,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                             shape: (seq_len, batch_size)
             - hidden: The initial hidden states for every layer of the stacked RNN.
                             shape: (num_layers, batch_size, hidden_size)
-        -------------------  
-        seq_len: 35
-        batch_size: 20
-        lr: 20
-        hidden_size: 200
-        emb_size : 20
+        -
         """
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the 
@@ -174,7 +169,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
             x = embedding[timestep,:]
-            #print('embedding output size: ', x.shape)
+            
             x = x.to(device)
             x = self.drop(x)
             for layer in range(len(self.regular_layers)): # hidden layers 
@@ -191,12 +186,12 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             ## AJOUTER LINEAR LAYER SANS ACTIVATION
             z = self.decoder(x)
             z = z.to(device)
-            #print('after decoded at each layer: ', z.shape)
+            
             # z is shape (num_layers, batch_size, vocab size)
             #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
     
             logits[timestep,:,:] = z[self.num_layers-1,:]
-        #print('logits channel values for last timestep: ', logits[self.seq_len-1,:,:])   
+             
         
         """
         
@@ -500,11 +495,51 @@ class MultiHeadedAttention(nn.Module):
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
         self.n_units = n_units 
+        self.drop = nn.Dropout(dropout)
+        self.drop = self.drop.to(device)
 
+        #self.encoder = nn.Embedding(, ) # input is an integer, index of word in dict
+        #self.encoder = self.encoder.to(device)
+
+        self.w_k = clones(nn.Linear(self.d_k, self.d_k), n_heads)
+        self.w_k = self.d_k.to(device)
+        self.w_q = clones(nn.Linear(self.d_k, self.d_k), n_heads)
+        self.w_q = self.w_q.to(device)
+        self.w_v = clones(nn.Linear(self.d_k, self.d_k), n_heads)
+        self.w_v = self.w_v.to(device)
+
+        self.w_o = nn.Linear(n_heads*n_units ,n_units)
+        self.w_o = self.w_o.to(device)
+
+        self.init_weights_uniform()
         # TODO: create/initialize any necessary parameters or layers
         # Note: the only Pytorch modules you are allowed to use are nn.Linear 
         # and nn.Dropout
-        
+    def init_weights_uniform(self):
+        # Initialize all the weights uniformly in the range [-range, range]
+        # and all the biases to 0 (in place)
+        k = np.sqrt(1/self.n_units)
+
+        for index, data in enumerate(self.w_k):
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+
+        for index, data in enumerate(self.w_q):
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+
+        for index, data in enumerate(self.w_v):
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+
+        torch.nn.init.uniform_(w_o.weight, -k, k)
+        torch.nn.init.uniform_(w_o.bias, -k, k)
+    def softmaxed(self, x , s):
+        x_tilde = torch.exp(x)*s
+
+        return torch.nn.softmax(x_tilde)
+
+
     def forward(self, query, key, value, mask=None):
         # TODO: implement the masked multi-head attention.
         # query, key, and value all have size: (batch_size, seq_len, self.n_units, self.d_k)
@@ -512,7 +547,20 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
+        z_cat = totch.empty(())
+        #for timestep in range(value.shape[1]):
+            for head in range(len(self.w_k)):
+                x = self.w_q[head](query[:, timestep, :, head])
+                y = self.w_k[head](torch.t(key[:, timestep, :, head]))
+                z = torch.mm(x,y) / (torch.sqrt(self.d_k))
+                z = z.to(device)
+                z = self.softmaxed(z)
 
+                z = torch.mm(z, self.w_v[head](value[:, timestep, :, head]))
+
+                z_cat.cat(z)
+            out = self.w_o(z_cat)
+            
         return # size: (batch_size, seq_len, self.n_units)
 
 
