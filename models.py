@@ -553,7 +553,9 @@ class MultiHeadedAttention(nn.Module):
         # Also apply dropout to the attention values.
         z_cat = torch.empty((value.shape[0], value.shape[1], self.n_units, self.d_k))
         #for timestep in range(value.shape[1]):
+
         for head in range(len(self.w_k)):
+                print('shape of query: ', query.shape)
                 x = self.w_q[head](query[:, :, :, head])
                 y = self.w_k[head](torch.t(key[:, :, :, head]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
