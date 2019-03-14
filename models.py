@@ -555,7 +555,7 @@ class MultiHeadedAttention(nn.Module):
         #for timestep in range(value.shape[1]):
 
         for head in range(len(self.w_k)):
-            for timestep in range(value.shape[1])
+            for timestep in range(value.shape[1]):
                 print('shape of key: ', key.shape)
                 x = self.w_q[head](query[:,timestep ,  head])
                 y = self.w_k[head](torch.t(key[:, timestep,  head]))
