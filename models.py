@@ -555,7 +555,7 @@ class MultiHeadedAttention(nn.Module):
                 print('shape of key: ', key.shape)
                 x = self.w_q[head](query[:,timestep ,  :])
                 y = torch.t(self.w_k[head](key[:, timestep,  :]))
-                z = torch.mm(x,y) / (torch.sqrt(self.d_k))
+                z = torch.mm(x,y) / (np.sqrt(self.d_k))
                 z = z.to(device)
                 print('shape of A_i: ', z.shape)
                 z = self.softmasked(z, mask)
