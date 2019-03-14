@@ -434,6 +434,7 @@ This ensures that the model only attends to previous time-steps.
 The model first encodes inputs using the concatenation of a learned WordEmbedding 
 and a (in our case, hard-coded) PositionalEncoding.
 The word embedding maps a word's one-hot encoding into a dense real vector.
+
 The positional encoding 'tags' each element of an input sequence with a code that 
 identifies it's position (i.e. time-step).
 
@@ -497,7 +498,7 @@ class MultiHeadedAttention(nn.Module):
         self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
-        #self.encoder = nn.Embedding(vocab_size, n_units) 
+        self.encoder = nn.Embedding(vocab_size, n_units) 
         #self.encoder = self.encoder.to(device)
 
         self.w_k = clones(nn.Linear(self.d_k, self.n_units), n_heads)
@@ -543,7 +544,7 @@ class MultiHeadedAttention(nn.Module):
 
     def forward(self, query, key, value, mask=None):
         # TODO: implement the masked multi-head attention.
-        # query, key, and value all have size: (batch_size, seq_len, self.n_units, self.d_k)
+        # query, key, and value all have size: (batch_size, seq_len, self.n_units,// self.d_k)
         # mask has size: (batch_size, seq_len, seq_len)
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
@@ -551,7 +552,11 @@ class MultiHeadedAttention(nn.Module):
         z_cat = torch.empty((value.shape[0], value.shape[1], self.n_units, self.d_k))
         #for timestep in range(value.shape[1]):
 
+        #embedding = self.encoder(value[:,])
+        embedding = embedding.to(device)
+
         for head in range(len(self.w_k)):
+            #x = embedding[timestep,:]
             #for timestep in range(value.shape[1]):
 
                 x = self.w_q[head](query[:, : , head])
