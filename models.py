@@ -552,10 +552,10 @@ class MultiHeadedAttention(nn.Module):
         #for timestep in range(value.shape[1]):
 
         for head in range(len(self.w_k)):
-            for timestep in range(value.shape[1]):
+            #for timestep in range(value.shape[1]):
 
-                x = self.w_q[head](query[:, timestep , head])
-                y = torch.t(self.w_k[head](key[:, timestep,  head]))
+                x = self.w_q[head](query[:, : , head])
+                y = torch.t(self.w_k[head](key[:, :,  head]))
                 z = torch.mm(x,y) / (np.sqrt(self.d_k))
                 z = z.to(device)
                 print('shape of A_i: ', z.shape)
