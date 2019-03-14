@@ -550,7 +550,7 @@ class MultiHeadedAttention(nn.Module):
         # Also apply dropout to the attention values.
         z_cat = totch.empty((batch_size, seq_len, seq_len))
         #for timestep in range(value.shape[1]):
-            for head in range(len(self.w_k)):
+        for head in range(len(self.w_k)):
                 x = self.w_q[head](query[:, timestep, :, head])
                 y = self.w_k[head](torch.t(key[:, timestep, :, head]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
@@ -566,9 +566,9 @@ class MultiHeadedAttention(nn.Module):
 
                 z_cat.cat(z)
 
-            out = self.w_o(z_cat)
-
-        return # size: (batch_size, seq_len, self.n_units)
+        out = self.w_o(z_cat)
+        print('final out : ', out.shape)
+        return out
 
 
 
