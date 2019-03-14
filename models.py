@@ -555,9 +555,10 @@ class MultiHeadedAttention(nn.Module):
         #for timestep in range(value.shape[1]):
 
         for head in range(len(self.w_k)):
+            for timestep in range(value.shape[1])
                 print('shape of key: ', key.shape)
-                x = self.w_q[head](query[:, :,  head])
-                y = self.w_k[head](torch.t(key[:, :,  head]))
+                x = self.w_q[head](query[:,timestep ,  head])
+                y = self.w_k[head](torch.t(key[:, timestep,  head]))
                 z = torch.mm(x,y) / (torch.sqrt(self.d_k))
                 z = z.to(device)
                 print('shape of A_i: ', z.shape)
@@ -566,7 +567,7 @@ class MultiHeadedAttention(nn.Module):
                 # Dropout applied to attention values
                 z = self.drop(z)
 
-                z = torch.mm(z, self.w_v[head](value[:, :, head]))
+                z = torch.mm(z, self.w_v[head](value[:, timestep, head]))
                 #by now z is size (batch, )
 
                 z_cat.cat(z)
