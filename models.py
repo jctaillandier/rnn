@@ -487,6 +487,9 @@ class MultiHeadedAttention(nn.Module):
         n_heads: the number of attention heads
         n_units: the number of output units
         dropout: probability of DROPPING units
+        (vocab_size=vocab_size, n_units=args.hidden_size, 
+                            n_blocks=args.num_layers, dropout=1.-args.dp_keep_prob)
+
         """
         super(MultiHeadedAttention, self).__init__()
         # This sets the size of the keys, values, and queries (self.d_k) to all 
@@ -498,11 +501,11 @@ class MultiHeadedAttention(nn.Module):
         self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
-        #self.encoder = nn.Embedding(, ) # input is an integer, index of word in dict
+        #self.encoder = nn.Embedding(vocab_size, n_units) 
         #self.encoder = self.encoder.to(device)
 
         self.w_k = clones(nn.Linear(self.d_k, self.d_k), n_heads)
-        self.w_k = self.d_k.to(device)
+        self.w_k = self.w_k.to(device)
         self.w_q = clones(nn.Linear(self.d_k, self.d_k), n_heads)
         self.w_q = self.w_q.to(device)
         self.w_v = clones(nn.Linear(self.d_k, self.d_k), n_heads)
