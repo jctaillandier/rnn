@@ -498,9 +498,6 @@ class MultiHeadedAttention(nn.Module):
         self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
-        self.encoder = nn.Embedding(vocab_size, n_units) 
-        #self.encoder = self.encoder.to(device)
-
         self.w_k = clones(nn.Linear(self.d_k, self.n_units), n_heads)
         self.w_k = self.w_k.to(device)
         self.w_q = clones(nn.Linear(self.d_k, self.n_units), n_heads)
@@ -551,9 +548,6 @@ class MultiHeadedAttention(nn.Module):
         # Also apply dropout to the attention values.
         z_cat = torch.empty((value.shape[0], value.shape[1], self.n_units, self.d_k))
         #for timestep in range(value.shape[1]):
-
-        #embedding = self.encoder(value[:,])
-        embedding = embedding.to(device)
 
         for head in range(len(self.w_k)):
             #x = embedding[timestep,:]
