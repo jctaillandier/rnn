@@ -491,6 +491,7 @@ class MultiHeadedAttention(nn.Module):
         super(MultiHeadedAttention, self).__init__()
         # This sets the size of the keys, values, and queries (self.d_k) to all 
         # be equal to the number of output units divided by the number of heads.
+        self.n_heads = n_heads
         self.d_k = n_units // n_heads
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
@@ -498,11 +499,12 @@ class MultiHeadedAttention(nn.Module):
         self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
-        self.w_k = clones(nn.Linear(self.d_k, self.n_units), n_heads)
+
+        self.w_k = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_k = self.w_k.to(device)
-        self.w_q = clones(nn.Linear(self.d_k, self.n_units), n_heads)
+        self.w_q = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_q = self.w_q.to(device)
-        self.w_v = clones(nn.Linear(self.d_k, self.n_units), n_heads)
+        self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(n_heads*n_units ,n_units)
@@ -533,6 +535,10 @@ class MultiHeadedAttention(nn.Module):
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
         
     def softmasked(self, x , s):
+        print('x size: ', x.shape)
+        print('mask size: ', s.shape)
+        print('----------------------')
+        print()
         if s is not None :
             x = torch.exp(x)*s
 
@@ -546,30 +552,35 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = torch.empty((value.shape[0], value.shape[1], self.n_units, self.d_k))
+        z_cat = torch.empty(value.shape[0], value.shape[1], self.n_units, self.d_k)
+        z_cat = z_cat.to(device)
         #for timestep in range(value.shape[1]):
-
-        for head in range(len(self.w_k)):
-            #x = embedding[timestep,:]
-            #for timestep in range(value.shape[1]):
+        #print('size of query: ', query.shape)
+        
+        for head in range((self.n_heads)): # unsure
+            
 
                 x = self.w_q[head](query[:, : , head])
-                y = torch.t(self.w_k[head](key[:, :,  head]))
+                y = torch.t(self.w_k[head](key[:, :, head]))
                 z = torch.mm(x,y) / (np.sqrt(self.d_k))
+                # Here z = a_i
                 z = z.to(device)
-                print('shape of A_i: ', z.shape)
+                #print('shape of A_i: ', z.shape)
                 # by now z is size (batch, batch) ---> can't be good
-                z = self.softmasked(z, mask)
                 
+                #z = self.softmasked(z, mask)
+                if mask is not None :
+                    z = torch.exp(z)*mask[:,head,:]
                 # Dropout applied to attention values
                 z = self.drop(z)
+                # Here z is H_i
+                z = torch.mm(z, self.w_v[head](value[:, :, :]))
 
-                z = torch.mm(z, self.w_v[head](value[:, timestep, :]))
-
+                # We concatenate all result in z_cat
                 z_cat.cat(z)
-
+        # Output FC layer
         out = self.w_o(z_cat)
-        print('final out : ', out.shape)
+        #print('final out : ', out.shape)
         return out
 
 
