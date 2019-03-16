@@ -578,7 +578,7 @@ class MultiHeadedAttention(nn.Module):
                 # We concatenate all result in z_cat
                 #shape is (batch, value.shape[1], self.n_units, self.n_heads)
                 torch.cat((z_cat[:, word , :, head], z), 0)
-        print('size before fuckup: ', z_cat.shape, '\n')
+        #print('size before fuckup: ', z_cat.shape, '\n')
         # Output FC layer
         out = self.w_o(z_cat)
         #print('final out : ', out.shape)
