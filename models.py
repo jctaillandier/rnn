@@ -567,7 +567,7 @@ class MultiHeadedAttention(nn.Module):
                 #print('size before masking: ', z.shape)
                 
                 #if mask is not None :
-                #    z = torch.exp(z)*mask[:,word,:]
+                z = F.softmax(z)#*mask[:,word,:]
                 # Dropout applied to attention values
                 z = self.drop(z)
                 # Here z is H_i
