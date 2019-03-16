@@ -1,0 +1,17 @@
+batch_size    128
+code_file    ptb-lm.py
+data    data
+debug    False
+dp_keep_prob    0.9
+emb_size    200
+evaluate    False
+hidden_size    512
+initial_lr    20.0
+model    TRANSFORMER
+num_epochs    40
+num_layers    6
+optimizer    SGD_LR_SCHEDULE
+save_best    False
+save_dir    TRANSFORMER_SGD_LR_SCHEDULE_model=TRANSFORMER_optimizer=SGD_LR_SCHEDULE_initial_lr=20_batch_size=128_seq_len=35_hidden_size=512_num_layers=6_dp_keep_prob=0.9_6
+seed    1111
+seq_len    35

@@ -552,6 +552,8 @@ class MultiHeadedAttention(nn.Module):
         # Also apply dropout to the attention values.
         z_cat = torch.empty(value.shape[0], value.shape[1], self.n_units, self.n_heads)
         z_cat = z_cat.to(device)
+
+        mask = mask.to(device, dtype=torch.float32)
         #for timestep in range(value.shape[1]):
         #print('size before all: ', query.shape)
         
@@ -564,10 +566,9 @@ class MultiHeadedAttention(nn.Module):
                 # Here z = a_i
                 z = z.to(device)
                 # by now z is size (batch, batch) ---> can't be good
-                #print('size before masking: ', z.shape)
-                
+                #print('size before masking: ', mask.type())
                 if mask is not None :
-                    z = F.softmax(z)*mask[:,word,word]
+                    z = F.softmax(z*mask[:,word,word])
                 # Dropout applied to attention values
                 z = self.drop(z)
                 # Here z is H_i
