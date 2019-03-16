@@ -507,13 +507,11 @@ class MultiHeadedAttention(nn.Module):
         self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_v = self.w_v.to(device)
 
-        self.w_o = nn.Linear(n_heads*n_units ,n_units)
+        self.w_o = nn.Linear(n_heads ,n_units)
         self.w_o = self.w_o.to(device)
 
         self.init_weights_uniform()
-        # TODO: create/initialize any necessary parameters or layers
-        # Note: the only Pytorch modules you are allowed to use are nn.Linear 
-        # and nn.Dropout
+        
     def init_weights_uniform(self):
         # Initialize all the weights uniformly in the range [-range, range]
         # and all the biases to 0 (in place)
@@ -552,32 +550,35 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = torch.empty(value.shape[0], value.shape[1], self.n_units, self.d_k)
+        z_cat = torch.empty(value.shape[0], value.shape[1], self.n_units, self.n_heads)
         z_cat = z_cat.to(device)
         #for timestep in range(value.shape[1]):
-        #print('size of query: ', query.shape)
+        #print('size before all: ', query.shape)
         
         for head in range((self.n_heads)): # unsure
-            
+            for word in range(query.shape[1]):
 
-                x = self.w_q[head](query[:, : , head])
-                y = torch.t(self.w_k[head](key[:, :, head]))
-                z = torch.mm(x,y) / (np.sqrt(self.d_k))
+                x = self.w_q[head](query[:, word , :]) # this is 128 x 512
+                y = (self.w_k[head](key[:, word, :]))
+                z = torch.mm(x,torch.t(y)) / (np.sqrt(self.d_k))
                 # Here z = a_i
                 z = z.to(device)
-                #print('shape of A_i: ', z.shape)
                 # by now z is size (batch, batch) ---> can't be good
+                #print('size before masking: ', z.shape)
                 
-                #z = self.softmasked(z, mask)
-                if mask is not None :
-                    z = torch.exp(z)*mask[:,head,:]
+                #if mask is not None :
+                #    z = torch.exp(z)*mask[:,word,:]
                 # Dropout applied to attention values
                 z = self.drop(z)
                 # Here z is H_i
-                z = torch.mm(z, self.w_v[head](value[:, :, :]))
+                z = torch.mm(z, self.w_v[head](value[:, word, :]))
 
+                #print('after a word : ', x.shape)
+                # z is 128x 512
                 # We concatenate all result in z_cat
-                z_cat.cat(z)
+                #shape is (batch, value.shape[1], self.n_units, self.n_heads)
+                torch.cat((z_cat[:, word , :, head], z), 0)
+        print('size before fuckup: ', z_cat.shape, '\n')
         # Output FC layer
         out = self.w_o(z_cat)
         #print('final out : ', out.shape)
