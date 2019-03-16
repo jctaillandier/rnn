@@ -566,8 +566,8 @@ class MultiHeadedAttention(nn.Module):
                 # by now z is size (batch, batch) ---> can't be good
                 #print('size before masking: ', z.shape)
                 
-                #if mask is not None :
-                z = F.softmax(z)#*mask[:,word,:]
+                if mask is not None :
+                    z = F.softmax(z)*mask[:,word,word]
                 # Dropout applied to attention values
                 z = self.drop(z)
                 # Here z is H_i
