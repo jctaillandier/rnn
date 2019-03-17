@@ -240,6 +240,9 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         final_seq = torch.empty(generated_seq_len, input.shape[0])
         final_seq = final_seq.to(device)
         
+        samples = torch.empty(generated_seq_len, input.shape[0])
+        samples = samples.to(device)
+        
         for timestep in range(generated_seq_len):
             for layer in range(len(self.regular_layers)):
                     x = self.regular_layers[layer](inputs) + self.rec_layers[layer](hidden)
@@ -251,8 +254,14 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             print()
             final_seq[timestep, :] = x
 
+            out = F.softmax(final_seq, dim=0)
+            # returns num_samples values per row, given a distribution given by above softmax
+            # Here cols are batch, so transform to get one value per row
+            samples[timestep, :] = torch.multinomial(torch.t(out), num_samples=1)
+
+        #samples[]
         """
-        Returns:
+         Returns:
             - Sampled sequences of tokens
                         shape: (generated_seq_len, batch_size)
         """
