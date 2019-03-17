@@ -81,7 +81,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
 
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size, bias=False), num_layers-1)   
         #first layer to match embedding
         self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
         self.regular_layers = self.regular_layers.to(device)   
@@ -109,7 +109,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # Initialize all the weights uniformed [-k, k]
         for index, data in enumerate(self.regular_layers):
             torch.nn.init.uniform_(data.weight.data, -k, k)
-            torch.nn.init.uniform_(data.bias.data, -k, k)
+
             torch.nn.init.uniform_(self.rec_layers[index].weight.data, -k, k)
             torch.nn.init.uniform_(self.rec_layers[index].bias.data, -k, k)
         
@@ -140,12 +140,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                             shape: (seq_len, batch_size)
             - hidden: The initial hidden states for every layer of the stacked RNN.
                             shape: (num_layers, batch_size, hidden_size)
-        -------------------  
-        seq_len: 35
-        batch_size: 20
-        lr: 20
-        hidden_size: 200
-        emb_size : 20
+        -
         """
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the 
@@ -174,7 +169,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             # Embedding returned a (seq_len, batch_size, emb_size)
             # I will iterate over each timestep where(axis==0)
             x = embedding[timestep,:]
-            #print('embedding output size: ', x.shape)
+            
             x = x.to(device)
             x = self.drop(x)
             for layer in range(len(self.regular_layers)): # hidden layers 
@@ -191,12 +186,12 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             ## AJOUTER LINEAR LAYER SANS ACTIVATION
             z = self.decoder(x)
             z = z.to(device)
-            #print('after decoded at each layer: ', z.shape)
+            
             # z is shape (num_layers, batch_size, vocab size)
             #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
     
             logits[timestep,:,:] = z[self.num_layers-1,:]
-        #print('logits channel values for last timestep: ', logits[self.seq_len-1,:,:])   
+             
         
         """
         
@@ -218,7 +213,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # 
 
     def generate(self, input, hidden, generated_seq_len):
-        # TODO ========================
         # Compute the forward pass, as in the self.forward method (above).
         # You'll probably want to copy substantial portions of that code here.
         # 
@@ -238,6 +232,26 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             - generated_seq_len: The length of the sequence to generate.
                         Note that this can be different than the length used 
                         for training (self.seq_len)
+        """
+        inputs = input
+        inputs = inputs.to(device)
+        hidden_state = hidden
+        hidden_state = hidden_state.to(device)
+        final_seq = torch.empty(generated_seq_len, input.shape[0])
+        final_seq = final_seq.to(device)
+        
+        for timestep in range(generated_seq_len):
+            for layer in range(len(self.regular_layers)):
+                    x = self.regular_layers[layer](inputs) + self.rec_layers[layer](hidden)
+                    x = x.to(device)
+                    x = torch.tanh(x)
+
+            hidden_state = x
+            print('size of x ', x.shape)
+            print()
+            final_seq[timestep, :] = x
+
+        """
         Returns:
             - Sampled sequences of tokens
                         shape: (generated_seq_len, batch_size)
@@ -291,10 +305,6 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.u_forget_layers = self.u_forget_layers.to(device)       
     self.u_hidden_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers)
     self.u_hidden_layers = self.u_hidden_layers.to(device)
-
-    #Following three moduleslists have a first linear layer size adjusted to fit emb_size ---> num_hidden
-    #self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
-    #self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
 
     self.reset_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), self.num_layers-1).to(device)
     self.reset_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
@@ -443,6 +453,7 @@ This ensures that the model only attends to previous time-steps.
 The model first encodes inputs using the concatenation of a learned WordEmbedding 
 and a (in our case, hard-coded) PositionalEncoding.
 The word embedding maps a word's one-hot encoding into a dense real vector.
+
 The positional encoding 'tags' each element of an input sequence with a code that 
 identifies it's position (i.e. time-step).
 
@@ -492,28 +503,106 @@ class MultiHeadedAttention(nn.Module):
         n_heads: the number of attention heads
         n_units: the number of output units
         dropout: probability of DROPPING units
+        (vocab_size=vocab_size, n_units=args.hidden_size, 
+                            n_blocks=args.num_layers, dropout=1.-args.dp_keep_prob)
+
         """
         super(MultiHeadedAttention, self).__init__()
         # This sets the size of the keys, values, and queries (self.d_k) to all 
         # be equal to the number of output units divided by the number of heads.
+        self.n_heads = n_heads
         self.d_k = n_units // n_heads
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
         self.n_units = n_units 
+        self.drop = nn.Dropout(dropout)
+        self.drop = self.drop.to(device)
 
-        # TODO: create/initialize any necessary parameters or layers
-        # Note: the only Pytorch modules you are allowed to use are nn.Linear 
-        # and nn.Dropout
+
+        self.w_k = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_k = self.w_k.to(device)
+        self.w_q = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_q = self.w_q.to(device)
+        self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_v = self.w_v.to(device)
+
+        self.w_o = nn.Linear(n_heads ,n_units)
+        self.w_o = self.w_o.to(device)
+
+        self.init_weights_uniform()
         
+    def init_weights_uniform(self):
+        # Initialize all the weights uniformly in the range [-range, range]
+        # and all the biases to 0 (in place)
+        k = np.sqrt(1/self.n_units)
+
+        for index, data in enumerate(self.w_k):
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+
+        for index, data in enumerate(self.w_q):
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+
+        for index, data in enumerate(self.w_v):
+            torch.nn.init.uniform_(data.weight, -k, k)
+            torch.nn.init.uniform_(data.bias, -k, k)
+
+        torch.nn.init.uniform_(self.w_o.weight, -k, k)
+        torch.nn.init.uniform_(self.w_o.bias, -k, k)
+        
+    def softmasked(self, x , s):
+        print('x size: ', x.shape)
+        print('mask size: ', s.shape)
+        print('----------------------')
+        print()
+        if s is not None :
+            x = torch.exp(x)*s
+
+        return torch.nn.softmax(x)
+
+
     def forward(self, query, key, value, mask=None):
         # TODO: implement the masked multi-head attention.
-        # query, key, and value all have size: (batch_size, seq_len, self.n_units, self.d_k)
+        # query, key, and value all have size: (batch_size, seq_len, self.n_units,// self.d_k)
         # mask has size: (batch_size, seq_len, seq_len)
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
+        z_cat = torch.empty(value.shape[0], value.shape[1], self.n_units, self.n_heads)
+        z_cat = z_cat.to(device)
 
-        return # size: (batch_size, seq_len, self.n_units)
+        mask = mask.to(device, dtype=torch.float32)
+        #for timestep in range(value.shape[1]):
+        #print('size before all: ', query.shape)
+        
+        for head in range((self.n_heads)): # unsure
+            for word in range(query.shape[1]):
+
+                x = self.w_q[head](query[:, word , :]) # this is 128 x 512
+                y = (self.w_k[head](key[:, word, :]))
+                z = torch.mm(x,torch.t(y)) / (np.sqrt(self.d_k))
+                # Here z = a_i
+                z = z.to(device)
+                # by now z is size (batch, batch) ---> can't be good
+                #print('size before masking: ', mask.type())
+                if mask is not None :
+                    z = F.softmax(z*mask[:,word,word])
+                # Dropout applied to attention values
+                z = self.drop(z)
+                # Here z is H_i
+                z = torch.mm(z, self.w_v[head](value[:, word, :]))
+
+                #print('after a word : ', x.shape)
+                # z is 128x 512
+                # We concatenate all result in z_cat
+                #shape is (batch, value.shape[1], self.n_units, self.n_heads)
+                torch.cat((z_cat[:, word , :, head], z), 0)
+        #print('size before fuckup: ', z_cat.shape, '\n')
+        # Output FC layer
+        out = self.w_o(z_cat)
+        #print('final out : ', out.shape)
+        return out
 
 
 
