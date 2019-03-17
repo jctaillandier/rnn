@@ -81,7 +81,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers)
         self.rec_layers = self.rec_layers.to(device)
 
-        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1)   
+        self.regular_layers = clones(nn.Linear(self.hidden_size, self.hidden_size, bias=False), num_layers-1)   
         #first layer to match embedding
         self.regular_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
         self.regular_layers = self.regular_layers.to(device)   
@@ -109,7 +109,7 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         # Initialize all the weights uniformed [-k, k]
         for index, data in enumerate(self.regular_layers):
             torch.nn.init.uniform_(data.weight.data, -k, k)
-            torch.nn.init.uniform_(data.bias.data, -k, k)
+
             torch.nn.init.uniform_(self.rec_layers[index].weight.data, -k, k)
             torch.nn.init.uniform_(self.rec_layers[index].bias.data, -k, k)
         
@@ -233,6 +233,26 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
             - generated_seq_len: The length of the sequence to generate.
                         Note that this can be different than the length used 
                         for training (self.seq_len)
+        """
+        inputs = input
+        inputs = inputs.to(device)
+        hidden_state = hidden
+        hidden_state = hidden_state.to(device)
+        final_seq = torch.empty(generated_seq_len, input.shape[0])
+        final_seq = final_seq.to(device)
+        
+        for timestep in range(generated_seq_len):
+            for layer in range(len(self.regular_layers)):
+                    x = self.regular_layers[layer](inputs) + self.rec_layers[layer](hidden)
+                    x = x.to(device)
+                    x = torch.tanh(x)
+
+            hidden_state = x
+            print('size of x ', x.shape)
+            print()
+            final_seq[timestep, :] = x
+
+        """
         Returns:
             - Sampled sequences of tokens
                         shape: (generated_seq_len, batch_size)
