@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [ " --model=TRANSFORMER",
+                 " --optimizer=SGD",
+                  " --initial_lr=20",
+                  " --batch_size=128",
+                  " --seq_len=35",
+                  " --hidden_size=512",
+                  " --num_layers=6",
+                  " --dp_keep_prob=.9"]
+        }
+    ]
+}
