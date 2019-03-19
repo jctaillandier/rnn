@@ -65,7 +65,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
         #self.first_layer = nn.Linear(self.emb_size, self.hidden_size)
         #self.first_layer = self.first_layer.to(device)
 
-        
+        self.decoder = nn.Linear(self.hidden_size, self.vocab_size)
+        self.decoder = self.decoder.to(device)
         #num_layers:   The depth of the stack (i.e. the number of hidden layers at 
         #              each time-step)
         self.num_layers = num_layers
@@ -183,13 +184,13 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 x = self.drop(x)
 
             ## AJOUTER LINEAR LAYER SANS ACTIVATION
-            #z = self.decoder(x)
-            #z = z.to(device)
+            z = self.decoder(x)
+            z = z.to(device)
             
             # z is shape (num_layers, batch_size, vocab size)
             #   We will want to apend the last layer (index=-1, : ,:) to logits at every timestep
     
-            logits[timestep,:,:] = x[self.num_layers-1,:]
+            logits[timestep,:,:] = z[self.num_layers-1,:]
              
         
         """
