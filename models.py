@@ -512,8 +512,6 @@ class MultiHeadedAttention(nn.Module):
         n_heads: the number of attention heads
         n_units: the number of output units
         dropout: probability of DROPPING units
-        (vocab_size=vocab_size, n_units=args.hidden_size, 
-                            n_blocks=args.num_layers, dropout=1.-args.dp_keep_prob)
 
         """
         super(MultiHeadedAttention, self).__init__()
@@ -586,27 +584,26 @@ class MultiHeadedAttention(nn.Module):
         #print('size before all: ', query.shape)
         
         for head in range((self.n_heads)): # unsure
-            for word in range(query.shape[1]):
-
-                x = self.w_q[head](query[:, word , :]) # this is 128 x 512
-                y = (self.w_k[head](key[:, word, :]))
-                z = torch.mm(x,torch.t(y)) / (np.sqrt(self.d_k))
-                # Here z = a_i
+            #for word in range(query.shape[1]):
+              
+                W = self.w_q[head](query) # this is 128 x 512
+                K = (self.w_k[head](key))
+                z = torch.bmm(W, K.transpose(1,2)) / (np.sqrt(self.d_k))
                 z = z.to(device)
                 # by now z is size (batch, batch) ---> can't be good
                 #print('size before masking: ', mask.type())
-                if mask is not None :
-                    z = F.softmax(z*mask[:,word,word])
+                #if mask is not None :
+                #    z = F.softmax(z*mask)
                 # Dropout applied to attention values
                 z = self.drop(z)
                 # Here z is H_i
-                z = torch.mm(z, self.w_v[head](value[:, word, :]))
-
+                z = torch.bmm(z, self.w_v[head](value))
+                
                 #print('after a word : ', x.shape)
                 # z is 128x 512
                 # We concatenate all result in z_cat
                 #shape is (batch, value.shape[1], self.n_units, self.n_heads)
-                torch.cat((z_cat[:, word , :, head], z), 0)
+                torch.cat((z_cat[:, : , :, head], z), 0)
         #print('size before fuckup: ', z_cat.shape, '\n')
         # Output FC layer
         out = self.w_o(z_cat)
