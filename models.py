@@ -580,9 +580,13 @@ class MultiHeadedAttention(nn.Module):
         #z_cat = z_cat.to(device)
         z_cat = []
         mask = mask.to(device, dtype=torch.float32)
-        #for timestep in range(value.shape[1]):
-        #print('size before all: ', query.shape)
-        #print('query size: ', query.shape)
+        #invert mask....
+        #mask = torch.unqueeze(mask, 2) 
+        #inv_mask = y = torch.ones(mask.shape[0], mask.shape[1], mask.shape[2])
+        mask[mask == 0] = -999999999
+        #mask = torch.where(mask==0, mask ,inv_mask)
+        #z.masked_fill_(inv_mask, -99999999999)
+
         for head in range((self.n_heads)): # unsure
             #for word in range(query.shape[1]):
               
@@ -591,14 +595,13 @@ class MultiHeadedAttention(nn.Module):
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
                 
-                # Here z is H_i, attention values
-                z = torch.bmm(z, self.w_v[head](value))
-                
                 # HERE 
+                z = z*mask
                 # mask and softmax
-                #z = z[:,:,]*mask
-                #z =  F.softmax(z, dim=2)
-                
+                z =  F.softmax(z, dim=2) ############### Over the input for every timestep
+
+                # Before of after softmax?
+                z = torch.bmm(z, self.w_v[head](value))
                 z = self.drop(z)
                 #print('before concat: ', z.shape) #(128, 35 , 32)
                 #print()
@@ -611,9 +614,6 @@ class MultiHeadedAttention(nn.Module):
         #print('size at output: ', out.shape) # 
         #print('final out : ', out.shape)
         return out
-
-
-# each head is n units by dk
 
 
 
