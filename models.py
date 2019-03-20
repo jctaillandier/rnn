@@ -596,7 +596,9 @@ class MultiHeadedAttention(nn.Module):
                 
                 # HERE 
                 # mask and softmax
-                z =  F.softmax(z)
+                #z = z[:,:,]*mask
+                #z =  F.softmax(z, dim=2)
+                
                 z = self.drop(z)
                 #print('before concat: ', z.shape) #(128, 35 , 32)
                 #print()
