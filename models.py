@@ -419,8 +419,7 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
 
                 hid_timestep = ((1-forget_temp) * hidden_states) + (forget_temp * h_wiggle)
 
-                # to use next timestep:
-                # (num_layers, batch_size, hidden_size)
+                # Save for next timestep, the value before dropout
                 hidden_states = hid_timestep 
 
                 #print('before decoding size: ', hid_timestep.shape)
@@ -576,38 +575,38 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
+        #z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
         other_z = []
 
         mask = mask.to(device, dtype=torch.float32)
+
+        # Where mask values are 0 , set to large negative, to fit softmax
         mask[mask == 0] = -999999999
         #print('mask: ', mask[1])
         
         for head in range((self.n_heads)): # unsure
-            #for word in range(query.shape[1]):
               
-                Q = self.w_q[head](query) # this is 128 x 512
+                Q = self.w_q[head](query) 
                 K = (self.w_k[head](key))
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
-                
-                #print('before concat: ', z.shape) #(128, 35 , 32)
-                z = z*mask
-                z =  F.softmax(z, dim=1) # might be dim=1...
+                # z is now the Attention value for this head
 
+                # Mask and Softmax over inputs
+                z = z*mask
+                z =  F.softmax(z, dim=1) # might be dim=1 or 2...
+
+                # Full Head attention value
                 z = torch.bmm(z, self.w_v[head](value))
+                #Then Dropout
                 z = self.drop(z)
-                #print('before concat: ', z.shape) #(128, 35 , 32)
-                #print()
                 
                 other_z.append(z)
-                #out = torch.cat(z_cat, dim=3)
-        # Output FC layer
+        
+        # Concatenate all heads together
         logits = torch.cat(other_z,dim=2)
-        #print('before output: ', out.shape)
+        # Output layer
         logits = self.w_o(logits)
-        #print('size at output: ', out.shape) # 
-        #print('final out : ', out.shape)
 
         return logits
 
