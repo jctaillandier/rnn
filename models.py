@@ -526,14 +526,14 @@ class MultiHeadedAttention(nn.Module):
         self.drop = self.drop.to(device)
 
 
-        self.w_k = clones(nn.Linear(35, self.n_units), n_heads)
+        self.w_k = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_k = self.w_k.to(device)
-        self.w_q = clones(nn.Linear(35, self.n_units), n_heads)
+        self.w_q = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_q = self.w_q.to(device)
-        self.w_v = clones(nn.Linear(35, self.n_units), n_heads)
+        self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
         self.w_v = self.w_v.to(device)
 
-        self.w_o = nn.Linear(35 ,self.n_units)
+        self.w_o = nn.Linear(self.n_heads, self.n_units)
         self.w_o = self.w_o.to(device)
 
         self.init_weights_uniform()
