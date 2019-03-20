@@ -576,16 +576,9 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        #z_cat = torch.empty(value.shape[0], value.shape[1], self.d_k)
-        #z_cat = z_cat.to(device)
         z_cat = []
         mask = mask.to(device, dtype=torch.float32)
-        #invert mask....
-        #mask = torch.unqueeze(mask, 2) 
-        #inv_mask = y = torch.ones(mask.shape[0], mask.shape[1], mask.shape[2])
         mask[mask == 0] = -999999999
-        #mask = torch.where(mask==0, mask ,inv_mask)
-        #z.masked_fill_(inv_mask, -99999999999)
 
         for head in range((self.n_heads)): # unsure
             #for word in range(query.shape[1]):
@@ -595,10 +588,8 @@ class MultiHeadedAttention(nn.Module):
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
                 
-                # HERE 
                 z = z*mask
-                # mask and softmax
-                z =  F.softmax(z, dim=2) ############### Over the input for every timestep
+                z =  F.softmax(z, dim=1) # might be dim=1...
 
                 # Before of after softmax?
                 z = torch.bmm(z, self.w_v[head](value))
