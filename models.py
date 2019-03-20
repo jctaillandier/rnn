@@ -533,7 +533,7 @@ class MultiHeadedAttention(nn.Module):
         self.w_v = clones(nn.Linear(self.n_units, self.d_k), n_heads)
         self.w_v = self.w_v.to(device)
 
-        self.w_o = nn.Linear(self.d_k, self.n_units)
+        self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
         self.w_o = self.w_o.to(device)
 
         self.init_weights_uniform()
@@ -576,9 +576,9 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = torch.empty(value.shape[0], value.shape[1], self.d_k)
-        z_cat = z_cat.to(device)
-
+        #z_cat = torch.empty(value.shape[0], value.shape[1], self.d_k)
+        #z_cat = z_cat.to(device)
+        z_cat = []
         mask = mask.to(device, dtype=torch.float32)
         #for timestep in range(value.shape[1]):
         #print('size before all: ', query.shape)
@@ -596,17 +596,17 @@ class MultiHeadedAttention(nn.Module):
                 
                 # HERE 
                 # mask and softmax
-
+                z =  F.softmax(z)
                 z = self.drop(z)
                 #print('before concat: ', z.shape) #(128, 35 , 32)
                 #print()
 
-                z_cat = torch.cat((z_cat, z))
-
+                z_cat.append(z)
+        out = torch.cat(z_cat, dim=2)
         # Output FC layer
-        print('before output: ', z_cat.shape)
-        out = self.w_o(z_cat)
-        print('size at output: ', z_cat.shape) # 
+        #print('before output: ', out.shape)
+        out = self.w_o(out)
+        #print('size at output: ', out.shape) # 
         #print('final out : ', out.shape)
         return out
 
