@@ -526,14 +526,14 @@ class MultiHeadedAttention(nn.Module):
         self.drop = self.drop.to(device)
 
 
-        self.w_k = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_k = clones(nn.Linear(35, self.n_units), n_heads)
         self.w_k = self.w_k.to(device)
-        self.w_q = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_q = clones(nn.Linear(35, self.n_units), n_heads)
         self.w_q = self.w_q.to(device)
-        self.w_v = clones(nn.Linear(self.n_units, self.n_units), n_heads)
+        self.w_v = clones(nn.Linear(35, self.n_units), n_heads)
         self.w_v = self.w_v.to(device)
 
-        self.w_o = nn.Linear(n_heads ,n_units)
+        self.w_o = nn.Linear(35 ,self.n_units)
         self.w_o = self.w_o.to(device)
 
         self.init_weights_uniform()
@@ -604,9 +604,11 @@ class MultiHeadedAttention(nn.Module):
                 # We concatenate all result in z_cat
                 #shape is (batch, value.shape[1], self.n_units, self.n_heads)
                 torch.cat((z_cat[:, : , :, head], z), 0)
+            
         #print('size before fuckup: ', z_cat.shape, '\n')
         # Output FC layer
         out = self.w_o(z_cat)
+        print('size at output: ', z_cat.shape)
         #print('final out : ', out.shape)
         return out
 
