@@ -582,7 +582,7 @@ class MultiHeadedAttention(nn.Module):
         mask = mask.to(device, dtype=torch.float32)
         #for timestep in range(value.shape[1]):
         #print('size before all: ', query.shape)
-        print('query size: ', query.shape)
+        #print('query size: ', query.shape)
         for head in range((self.n_heads)): # unsure
             #for word in range(query.shape[1]):
               
