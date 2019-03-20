@@ -576,10 +576,13 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        z_cat = []
+        z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
+        other_z = []
+
         mask = mask.to(device, dtype=torch.float32)
         mask[mask == 0] = -999999999
-
+        #print('mask: ', mask[1])
+        
         for head in range((self.n_heads)): # unsure
             #for word in range(query.shape[1]):
               
@@ -588,23 +591,25 @@ class MultiHeadedAttention(nn.Module):
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
                 
+                #print('before concat: ', z.shape) #(128, 35 , 32)
                 z = z*mask
                 z =  F.softmax(z, dim=1) # might be dim=1...
 
-                # Before of after softmax?
                 z = torch.bmm(z, self.w_v[head](value))
                 z = self.drop(z)
                 #print('before concat: ', z.shape) #(128, 35 , 32)
                 #print()
-
-                z_cat.append(z)
-        out = torch.cat(z_cat, dim=2)
+                
+                other_z.append(z)
+                #out = torch.cat(z_cat, dim=3)
         # Output FC layer
+        logits = torch.cat(other_z,dim=2)
         #print('before output: ', out.shape)
-        out = self.w_o(out)
+        logits = self.w_o(logits)
         #print('size at output: ', out.shape) # 
         #print('final out : ', out.shape)
-        return out
+
+        return logits
 
 
 
