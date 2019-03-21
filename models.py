@@ -567,13 +567,8 @@ class MultiHeadedAttention(nn.Module):
         other_z = []
 
         mask = mask.to(device, dtype=torch.float32)
-        print(mask[1])
-        mask = 1-mask
-        print(mask[1])
         # Where mask values are 0 , set to large negative, to fit softmax
         mask[mask == 0] = -999999999
-
-        n_units_each = query.shape[2]/self.n_heads
 
         for head in range((self.n_heads)): # unsure
               
