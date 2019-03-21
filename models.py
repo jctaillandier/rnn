@@ -554,15 +554,6 @@ class MultiHeadedAttention(nn.Module):
         torch.nn.init.uniform_(self.w_o.weight, -k, k)
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
         
-    def softmasked(self, x , s):
-        print('x size: ', x.shape)
-        print('mask size: ', s.shape)
-        print('----------------------')
-        print()
-        if s is not None :
-            x = torch.exp(x)*s
-
-        return torch.nn.softmax(x)
 
 
     def forward(self, query, key, value, mask=None):
@@ -584,7 +575,7 @@ class MultiHeadedAttention(nn.Module):
         for head in range((self.n_heads)): # unsure
               
                 Q = self.w_q(query) 
-                K = (self.w_k(key))
+                K = self.w_k(key)
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
                 # z is now the Attention value for this head
@@ -592,15 +583,7 @@ class MultiHeadedAttention(nn.Module):
                 # Mask and Softmax over inputs
                 z = z*mask
 
-                ############################################33
-                ############################################33
-
-                    # If anything its probably here!!
                 z =  F.softmax(z, dim=1) 
-
-                
-                ############################################33
-                ############################################33
 
                 # Full Head attention value
                 z = torch.bmm(z, self.w_v(value))
