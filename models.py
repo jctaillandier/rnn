@@ -580,7 +580,7 @@ class MultiHeadedAttention(nn.Module):
 
                 # Mask and Softmax over inputs
                 z = z*mask
-                mask[mask == 0] = -10**9    
+                z[mask == 0] = -10**9    
                 z =  F.softmax(z, dim=1) 
 
                 # Full Head attention value
