@@ -525,11 +525,11 @@ class MultiHeadedAttention(nn.Module):
         self.drop = self.drop.to(device)
 
 
-        self.w_k = clones(nn.Linear(self.n_units, self.d_k), n_heads)
+        self.w_k = nn.Linear(self.n_units, self.d_k)
         self.w_k = self.w_k.to(device)
-        self.w_q = clones(nn.Linear(self.n_units, self.d_k), n_heads)
+        self.w_q = nn.Linear(self.n_units, self.d_k)
         self.w_q = self.w_q.to(device)
-        self.w_v = clones(nn.Linear(self.n_units, self.d_k), n_heads)
+        self.w_v = nn.Linear(self.n_units, self.d_k)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
@@ -542,17 +542,14 @@ class MultiHeadedAttention(nn.Module):
         # and all the biases to 0 (in place)
         k = np.sqrt(1/self.n_units)
 
-        for index, data in enumerate(self.w_k):
-            torch.nn.init.uniform_(data.weight, -k, k)
-            torch.nn.init.uniform_(data.bias, -k, k)
+        torch.nn.init.uniform_(self.w_k.weight, -k, k)
+        torch.nn.init.uniform_(self.w_k.bias, -k, k)
 
-        for index, data in enumerate(self.w_q):
-            torch.nn.init.uniform_(data.weight, -k, k)
-            torch.nn.init.uniform_(data.bias, -k, k)
+        torch.nn.init.uniform_(self.w_o.weight, -k, k)
+        torch.nn.init.uniform_(self.w_o.bias, -k, k)
 
-        for index, data in enumerate(self.w_v):
-            torch.nn.init.uniform_(data.weight, -k, k)
-            torch.nn.init.uniform_(data.bias, -k, k)
+        torch.nn.init.uniform_(self.w_v.weight, -k, k)
+        torch.nn.init.uniform_(self.w_v.bias, -k, k)
 
         torch.nn.init.uniform_(self.w_o.weight, -k, k)
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
@@ -586,18 +583,27 @@ class MultiHeadedAttention(nn.Module):
         
         for head in range((self.n_heads)): # unsure
               
-                Q = self.w_q[head](query) 
-                K = (self.w_k[head](key))
+                Q = self.w_q(query) 
+                K = (self.w_k(key))
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
                 # z is now the Attention value for this head
 
                 # Mask and Softmax over inputs
                 z = z*mask
-                z =  F.softmax(z, dim=1) # might be dim=1 or 2...
+
+                ############################################33
+                ############################################33
+
+                    # If anything its probably here!!
+                z =  F.softmax(z, dim=1) 
+
+                
+                ############################################33
+                ############################################33
 
                 # Full Head attention value
-                z = torch.bmm(z, self.w_v[head](value))
+                z = torch.bmm(z, self.w_v(value))
                 #Then Dropout
                 z = self.drop(z)
                 
