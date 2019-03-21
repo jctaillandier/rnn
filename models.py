@@ -521,7 +521,7 @@ class MultiHeadedAttention(nn.Module):
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
         self.n_units = n_units 
-        self.drop = nn.Dropout(dropout)
+        self.drop = nn.Dropout(1-dropout)
         self.drop = self.drop.to(device)
 
 
