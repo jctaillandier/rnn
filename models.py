@@ -501,7 +501,8 @@ class MultiHeadedAttention(nn.Module):
         self.d_k = n_units // n_heads
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
-        self.n_units = n_units
+        self.n_units = n_units 
+
         self.drop = nn.Dropout(1-dropout)
         self.drop = self.drop.to(device)
 
@@ -553,7 +554,8 @@ class MultiHeadedAttention(nn.Module):
 
         for head in range((self.n_heads)): # unsure
 
-                Q = self.w_q(query)
+              
+                Q = self.w_q(query) 
                 K = self.w_k(key)
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
@@ -562,7 +564,9 @@ class MultiHeadedAttention(nn.Module):
                 # Mask and Softmax over inputs
                 z = z*mask
 
-                z =  F.softmax(z, dim=1)
+
+                z =  F.softmax(z, dim=1) 
+
 
                 # Full Head attention value
                 z = torch.bmm(z, self.w_v(value))
