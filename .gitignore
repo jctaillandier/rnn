@@ -1,0 +1,11 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Best param
+best_params.pt
+exp_config.txt
