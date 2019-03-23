@@ -105,7 +105,7 @@ from models import make_model as TRANSFORMER
 parser = argparse.ArgumentParser(description='PyTorch Penn Treebank Language Modeling')
 
 # Arguments you may need to set to run different experiments in 4.1 & 4.2.
-parser.add_argument('--data', type=str, default='data',
+parser.add_argument('--data', type=str, default='rnn/data',
                     help='location of the data corpus')
 parser.add_argument('--model', type=str, default='GRU',
                     help='type of recurrent net (RNN, GRU, TRANSFORMER)')
