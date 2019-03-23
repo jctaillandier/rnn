@@ -514,7 +514,7 @@ class MultiHeadedAttention(nn.Module):
         self.w_v = nn.Linear(self.n_units, self.d_k)
         self.w_v = self.w_v.to(device)
 
-        self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
+        self.w_o = nn.Linear(self.n_units, self.n_units)
         self.w_o = self.w_o.to(device)
 
         self.init_weights_uniform()
@@ -551,8 +551,6 @@ class MultiHeadedAttention(nn.Module):
         mask = mask.to(device, dtype=torch.float32)
         # Where mask values are 0 , set to large negative, to fit softmax
         mask[mask == 0] = -999999999
-
-
               
         Q = self.w_q(query) 
         K = self.w_k(key)
@@ -562,17 +560,13 @@ class MultiHeadedAttention(nn.Module):
 
         # Mask and Softmax over inputs
         z = z*mask
-
-
         z =  F.softmax(z, dim=1) 
-
 
         # Full Head attention value
         z = torch.bmm(z, self.w_v(value))
         #Then Dropout
         z = self.drop(z)
 
-                
         # Output layer
         logits = self.w_o(logits)
 
