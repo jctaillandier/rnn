@@ -545,7 +545,6 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        #z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
 
         mask = mask.to(device, dtype=torch.float32)
         # Where mask values are 0 , set to large negative, to fit softmax
@@ -558,7 +557,7 @@ class MultiHeadedAttention(nn.Module):
 
         # Mask and Softmax over inputs
         z = z.masked_fill(mask==0,-10**9)
-        z =  nn.functional.softmax(z, dim=1) 
+        z =  F.softmax(z, dim=1) 
 
         # Full Head attention value
         z = torch.bmm(z, self.w_v(value))
