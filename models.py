@@ -552,31 +552,27 @@ class MultiHeadedAttention(nn.Module):
         # Where mask values are 0 , set to large negative, to fit softmax
         mask[mask == 0] = -999999999
 
-        for head in range((self.n_heads)): # unsure
 
               
-                Q = self.w_q(query) 
-                K = self.w_k(key)
-                z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
-                z = z.to(device)
-                # z is now the Attention value for this head
+        Q = self.w_q(query) 
+        K = self.w_k(key)
+        z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
+        z = z.to(device)
+        # z is now the Attention value for this head
 
-                # Mask and Softmax over inputs
-                z = z*mask
-
-
-                z =  F.softmax(z, dim=1) 
+        # Mask and Softmax over inputs
+        z = z*mask
 
 
-                # Full Head attention value
-                z = torch.bmm(z, self.w_v(value))
-                #Then Dropout
-                z = self.drop(z)
+        z =  F.softmax(z, dim=1) 
 
-                other_z.append(z)
 
-        # Concatenate all heads together
-        logits = torch.cat(other_z, dim=2)
+        # Full Head attention value
+        z = torch.bmm(z, self.w_v(value))
+        #Then Dropout
+        z = self.drop(z)
+
+                
         # Output layer
         logits = self.w_o(logits)
 
