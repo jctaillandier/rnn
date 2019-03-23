@@ -568,7 +568,7 @@ class MultiHeadedAttention(nn.Module):
         z = self.drop(z)
 
         # Output layer
-        logits = self.w_o(logits)
+        logits = self.w_o(z)
 
         return logits
 
