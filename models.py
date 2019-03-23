@@ -514,7 +514,7 @@ class MultiHeadedAttention(nn.Module):
         self.w_v = nn.Linear(self.n_units, self.d_k)
         self.w_v = self.w_v.to(device)
 
-        self.w_o = nn.Linear(self.n_units, self.n_units)
+        self.w_o = nn.Linear(self.d_k, self.n_units)
         self.w_o = self.w_o.to(device)
 
         self.init_weights_uniform()
