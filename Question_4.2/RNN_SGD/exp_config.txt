@@ -1,0 +1,17 @@
+batch_size    20
+code_file    ptb-lm.py
+data    data
+debug    False
+dp_keep_prob    0.35
+emb_size    200
+evaluate    False
+hidden_size    1500
+initial_lr    0.0001
+model    RNN
+num_epochs    40
+num_layers    2
+optimizer    SGD
+save_best    True
+save_dir    RNN_SGD_model=RNN_optimizer=SGD_initial_lr=0.0001_batch_size=20_seq_len=35_hidden_size=1500_num_layers=2_dp_keep_prob=0.35_save_best_0
+seed    1111
+seq_len    35
