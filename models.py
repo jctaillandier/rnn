@@ -503,7 +503,7 @@ class MultiHeadedAttention(nn.Module):
         assert n_units % n_heads == 0
         self.n_units = n_units 
 
-        self.drop = nn.Dropout(1-dropout)
+        self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
 
