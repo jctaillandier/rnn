@@ -560,7 +560,7 @@ class MultiHeadedAttention(nn.Module):
 
         # Mask and Softmax over inputs
         z = z*mask
-        z =  F.softmax(z, dim=1) 
+        z =  nn.functional.softmax(z, dim=1) 
 
         # Full Head attention value
         z = torch.bmm(z, self.w_v(value))
