@@ -110,5 +110,5 @@ generate_sequence(num_samples=500, model_type='RNN', emb_size=200, hidden_size=1
 
 
 # # For GRU
-# rnn_path = 'Question_4.3/_________/best_params.pt'
+# gru_path = 'Question_4.3/____________/best_params.pt'
 # generate_sequence((num_samples=100, model_type='GRU', emb_size=200, hidden_size=1500, seq_len=35, batch_size=32, num_layers=2, dp_keep_prob=0.35, vocab_size=vocab_size, path=gru_path)
