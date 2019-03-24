@@ -525,11 +525,11 @@ class MultiHeadedAttention(nn.Module):
         self.drop = self.drop.to(device)
 
 
-        self.w_k = nn.Linear(self.n_units, self.d_k)
+        self.w_k = nn.Linear(self.n_units, self.n_units)
         self.w_k = self.w_k.to(device)
-        self.w_q = nn.Linear(self.n_units, self.d_k)
+        self.w_q = nn.Linear(self.n_units, self.n_units)
         self.w_q = self.w_q.to(device)
-        self.w_v = nn.Linear(self.n_units, self.d_k)
+        self.w_v = nn.Linear(self.n_units, self.n_units)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
@@ -567,38 +567,36 @@ class MultiHeadedAttention(nn.Module):
 
     def forward(self, query, key, value, mask=None):
         # TODO: implement the masked multi-head attention.
-        # query, key, and value all have size: (batch_size, seq_len, self.n_units,// self.d_k)
+        # query, key, and value all have size: (batch_size, seq_len, self.n_units)
         # mask has size: (batch_size, seq_len, seq_len)
         # As described in the .tex, apply input masking to the softmax 
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
 
-        other_z = []
 
         mask = mask.to(device, dtype=torch.float32)
+        if mask is not none:
+            mask.unsqueeze(1)      
         
-        for head in range((self.n_heads)): 
-              
-                Q = self.w_q(query) 
-                K = self.w_k(key)
-                z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
-                z = z.to(device)
-                # z is now the Attention value for this head
-                # Mask and Softmax over inputs
-                z = z.masked_fill(mask==0,-10e9)
-                #z = (z*mask)-((10**9)*(1-mask))
-                z =  F.softmax(z, dim=-1) 
+        Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
+        K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
+        z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
+        z = z.to(device)
+        # z is now the Attention value for this head
+        
+        # Mask and Softmax over inputs
+        z = z.masked_fill(mask==0,-10e9)
+        #z = (z*mask)-((10**9)*(1-mask))
+        z =  F.softmax(z, dim=-1) 
 
-                # Full Head attention value
-                z = torch.bmm(z, self.w_v(value))
-                #Then Dropout
-                z = self.drop(z)
-                
-                other_z.append(z) # each one is 128 x 35 x 32
-        # Concatenate all heads together
-        logits = torch.cat(other_z,dim=2)
+        # Full Head attention value
+        z = torch.bmm(z, self.w_v(value).view(value.size(0),value.size(1),self.n_heads,self.d_k).transpose(1,2))
+        #Then Dropout
+        z = self.drop(z)
+
         # Output layer
         logits = self.w_o(logits)
+
         return logits
 
 
