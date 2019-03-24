@@ -575,8 +575,8 @@ class MultiHeadedAttention(nn.Module):
 
 
         mask = mask.to(device, dtype=torch.float32)
-        #if mask is not None:
-         #   mask.unsqueeze(1)      
+        if mask is not None:
+            mask.unsqueeze(1)      
         
         Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
         K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
@@ -595,7 +595,7 @@ class MultiHeadedAttention(nn.Module):
         z = self.drop(z)
 
         # Output layer
-        logits = self.w_o(z)
+        logits = self.w_o(z.transpose(1,2).contiguous().view(query.size(0),-1,self.n_units))
 
         return logits
 
