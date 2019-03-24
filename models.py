@@ -580,7 +580,7 @@ class MultiHeadedAttention(nn.Module):
         
         Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
         K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
-        z = torch.bmm(Q, K.transpose(-2, -1) )/ (np.sqrt(self.d_k))
+        z = torch.matmul(Q, K.transpose(-2, -1) )/ (np.sqrt(self.d_k))
         z = z.to(device)
         # z is now the Attention value for this head
 
