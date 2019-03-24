@@ -140,7 +140,19 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                             shape: (seq_len, batch_size)
             - hidden: The initial hidden states for every layer of the stacked RNN.
                             shape: (num_layers, batch_size, hidden_size)
-        -
+        Returns:
+            - Logits for the softmax over output tokens at every time-step.
+                **Do NOT apply softmax to the outputs!**
+                Pytorch's CrossEntropyLoss function (applied in ptb-lm.py) does
+                this computation implicitly.
+                        shape: (seq_len, batch_size, vocab_size)
+            - The final hidden states for every layer of the stacked RNN.
+                These will be used as the initial hidden states for all the
+                mini-batches in an epoch, except for the first, where the return
+                value of self.init_hidden will be used.
+                See the repackage_hiddens function in ptb-lm.py for more details,
+                if you are curious.
+                        shape: (num_layers, batch_size, hidden_size)
         """
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the
@@ -183,7 +195,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 hidden_states = x
                 x = self.drop(x)
 
-            ## AJOUTER LINEAR LAYER SANS ACTIVATION
             z = self.decoder(x)
             z = z.to(device)
 
@@ -192,25 +203,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             logits[timestep,:,:] = z[self.num_layers-1,:]
 
-
-        """
-
-        Returns:
-            - Logits for the softmax over output tokens at every time-step.
-                **Do NOT apply softmax to the outputs!**
-                Pytorch's CrossEntropyLoss function (applied in ptb-lm.py) does
-                this computation implicitly.
-                        shape: (seq_len, batch_size, vocab_size)
-            - The final hidden states for every layer of the stacked RNN.
-                These will be used as the initial hidden states for all the
-                mini-batches in an epoch, except for the first, where the return
-                value of self.init_hidden will be used.
-                See the repackage_hiddens function in ptb-lm.py for more details,
-                if you are curious.
-                        shape: (num_layers, batch_size, hidden_size)
-        """
         return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states
-        #
+
 
     def generate(self, input, hidden, generated_seq_len):
         # Compute the forward pass, as in the self.forward method (above).
@@ -313,7 +307,6 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
     self.rec_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
     self.rec_layers = self.rec_layers.to(device)
-
 
     #Initializing weights
     self.init_weights_uniform()
@@ -425,9 +418,38 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
 
 
   def generate(self, input, hidden, generated_seq_len):
-    # TODO ========================
-    return samples
 
+    samples  = torch.empty(generated_seq_len, input.shape[0])
+    samples = samples.to(device)
+    samples[0,:] = input
+
+    for timestep in range(generated_seq_len):
+        x = self.encoder(input)
+        x = self.drop(x)
+
+        for layer in range(len(self.rec_layers)):
+            reset = self.reset_layers[layer](x)
+            u_reset_temp = self.u_reset_layers[layer](hidden[layer,:,:])
+            reset_temp = torch.sigmoid(reset+u_reset_temp)
+
+            forget = self.forget_layers[layer](x)
+            u_forget_temp =self.u_forget_layers[layer](hidden[layer,:,:])
+            forget_temp = torch.sigmoid(forget + u_forget_temp)
+
+            h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](reset_temp * hidden[layer,:,:])
+            h_wiggle = torch.tanh(h_wiggle)
+
+            x = torch.mul((1-forget_temp),hidden[layer,:,:].clone())+torch.mul(forget_temp,h_wiggle)
+
+            hidden[layer,:,:] = x
+            self.drop(x)
+
+        output = self.decoder(x)
+        output = F.softmax(output, dim=0)
+        output = torch.multinomial(output, 1)
+        samples[timestep,:] = output.squeeze()
+
+    return samples
 
 # Problem 3
 ##############################################################################
@@ -501,7 +523,7 @@ class MultiHeadedAttention(nn.Module):
         self.d_k = n_units // n_heads
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
-        self.n_units = n_units 
+        self.n_units = n_units
 
         self.drop = nn.Dropout(1-dropout)
         self.drop = self.drop.to(device)
@@ -554,8 +576,8 @@ class MultiHeadedAttention(nn.Module):
 
         for head in range((self.n_heads)): # unsure
 
-              
-                Q = self.w_q(query) 
+
+                Q = self.w_q(query)
                 K = self.w_k(key)
                 z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
                 z = z.to(device)
@@ -565,7 +587,7 @@ class MultiHeadedAttention(nn.Module):
                 z = z*mask
 
 
-                z =  F.softmax(z, dim=1) 
+                z =  F.softmax(z, dim=1)
 
 
                 # Full Head attention value
