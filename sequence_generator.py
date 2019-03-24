@@ -70,7 +70,7 @@ def ptb_raw_data(data_path=None, prefix="ptb"):
 #
 ###############################################################################
 
-def generate_sequence(num_samples, model_type, emb_size, hidden_size, seq_len, batch_size, num_layers, dp_keep_prob, vocab_size, path):
+def generate_sequences(id_2_word, num_samples, model_type, emb_size, hidden_size, seq_len, batch_size, num_layers, dp_keep_prob, vocab_size, path):
 	if model_type=='RNN':
 		model = RNN(emb_size=emb_size, hidden_size=hidden_size,
 				seq_len=seq_len, batch_size=batch_size,
@@ -88,13 +88,13 @@ def generate_sequence(num_samples, model_type, emb_size, hidden_size, seq_len, b
 	input = torch.ones(10000)*1/1000
 	input = torch.multinomial(input, num_samples).to(device)
 	output = model.generate(input, hidden, seq_len)
+	f = open(model_type + '_generated_sequences' +'.txt','w')
 
-	fid= open(model_type + '_generated_sequences' +'.txt','w')
 	for i in range(num_samples):
 		for j in range(seq_len):
-			fid.write(id_2_word.get(output[j,i].item())+' ')
-		fid.write('\n')
-	fid.close()
+			f.write(id_2_word.get(output[j,i].item())+' ')
+		f.write('\n')
+	f.close()
 
 print('GENERATING SEQUENCES')
 print()
@@ -104,11 +104,9 @@ vocab_size = len(word_to_id)
 print('vocabulary size: {}'.format(vocab_size))
 
 # For RNN
-rnn_path = 'Question_4.3/RNN_DP_0.45/best_params.pt'
+rnn_path = 'Question_4.1/RNN/best_params.pt'
+generate_sequences(id_2_word, num_samples=500, model_type='RNN', emb_size=200, hidden_size=1500, seq_len=35, batch_size=20, num_layers=2, dp_keep_prob=0.45, vocab_size=vocab_size, path=rnn_path)
 
-generate_sequence(num_samples=500, model_type='RNN', emb_size=200, hidden_size=1500, seq_len=35, batch_size=32, num_layers=2, dp_keep_prob=0.45, vocab_size=vocab_size, path=rnn_path)
-
-
-# # For GRU
-# gru_path = 'Question_4.3/____________/best_params.pt'
-# generate_sequence((num_samples=100, model_type='GRU', emb_size=200, hidden_size=1500, seq_len=35, batch_size=32, num_layers=2, dp_keep_prob=0.35, vocab_size=vocab_size, path=gru_path)
+# For GRU
+gru_path = 'Question_4.1/GRU/best_params.pt'
+generate_sequences(id_2_word, num_samples=500, model_type='GRU', emb_size=200, hidden_size=1500, seq_len=35, batch_size=20, num_layers=2, dp_keep_prob=0.35, vocab_size=vocab_size, path=gru_path)
