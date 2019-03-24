@@ -576,10 +576,6 @@ class MultiHeadedAttention(nn.Module):
         other_z = []
 
         mask = mask.to(device, dtype=torch.float32)
-
-        # Where mask values are 0 , set to large negative, to fit softmax
-        mask[mask == 0] = -999999999
-        #print('mask: ', mask[1])
         
         for head in range((self.n_heads)): # unsure
               
@@ -590,7 +586,7 @@ class MultiHeadedAttention(nn.Module):
                 # z is now the Attention value for this head
 
                 # Mask and Softmax over inputs
-                z = z*mask
+                z = z.masked_fill(mask==0,-10**9)
                 z =  F.softmax(z, dim=1) # might be dim=1 or 2...
 
                 # Full Head attention value
