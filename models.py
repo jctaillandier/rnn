@@ -583,7 +583,7 @@ class MultiHeadedAttention(nn.Module):
         z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
         z = z.to(device)
         # z is now the Attention value for this head
-        
+
         # Mask and Softmax over inputs
         z = z.masked_fill(mask==0,-10e9)
         #z = (z*mask)-((10**9)*(1-mask))
@@ -595,7 +595,7 @@ class MultiHeadedAttention(nn.Module):
         z = self.drop(z)
 
         # Output layer
-        logits = self.w_o(logits)
+        logits = self.w_o(z)
 
         return logits
 
