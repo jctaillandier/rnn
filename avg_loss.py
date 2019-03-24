@@ -185,7 +185,7 @@ with open (os.path.join(experiment_path,'exp_config.txt'), 'w') as f:
 # Set the random seed manually for reproducibility.
 torch.manual_seed(args.seed)
 
-#Use the GPU if you have one
+# Use the GPU if you have one
 if torch.cuda.is_available():
     print("Using the GPU")
     device = torch.device("cuda")
@@ -200,7 +200,6 @@ else:
 # DATA LOADING & PROCESSING
 #
 ###############################################################################
-
 
 # HELPER FUNCTIONS
 def _read_words(filename):
@@ -292,6 +291,40 @@ print('  vocabulary size: {}'.format(vocab_size))
 #
 ###############################################################################
 
+# NOTE ==============================================
+# This is where your model code will be called. You may modify this code
+# if required for your implementation, but it should not typically be necessary,
+# and you must let the TAs know if you do so.
+if args.model == 'RNN':
+    model = RNN(emb_size=args.emb_size, hidden_size=args.hidden_size,
+                seq_len=args.seq_len, batch_size=args.batch_size,
+                vocab_size=vocab_size, num_layers=args.num_layers,
+                dp_keep_prob=args.dp_keep_prob)
+elif args.model == 'GRU':
+    model = GRU(emb_size=args.emb_size, hidden_size=args.hidden_size,
+                seq_len=args.seq_len, batch_size=args.batch_size,
+                vocab_size=vocab_size, num_layers=args.num_layers,
+                dp_keep_prob=args.dp_keep_prob)
+elif args.model == 'TRANSFORMER':
+    if args.debug:  # use a very small model
+        model = TRANSFORMER(vocab_size=vocab_size, n_units=16, n_blocks=2)
+    else:
+        # Note that we're using num_layers and hidden_size to mean slightly
+        # different things here than in the RNNs.
+        # Also, the Transformer also has other hyperparameters
+        # (such as the number of attention heads) which can change it's behavior.
+        model = TRANSFORMER(vocab_size=vocab_size, n_units=args.hidden_size,
+                            n_blocks=args.num_layers, dropout=1.-args.dp_keep_prob)
+    # these 3 attributes don't affect the Transformer's computations;
+    # they are only used in run_epoch
+    model.batch_size=args.batch_size
+    model.seq_len=args.seq_len
+    model.vocab_size=vocab_size
+else:
+    print("Model type not recognized.")
+
+model = model.to(device)
+
 # LOSS FUNCTION
 loss_fn = nn.CrossEntropyLoss()
 if args.optimizer == 'ADAM':
@@ -326,9 +359,6 @@ def repackage_hidden(h):
 
 
 def run_epoch(model, data, model_type):
-    """
-    One epoch of training/validation (depending on flag is_train).
-    """
     model.eval()
 
     if  model_type != 'TRANSFORMER':
@@ -347,7 +377,7 @@ def run_epoch(model, data, model_type):
             hidden = hidden.to(device)
 
         if model_type == 'TRANSFORMER':
-            batch = Batch(torch.from_numpy(x).long())
+            batch = Batch(torch.from_numpy(x).long().to(device))
             model.zero_grad()
             outputs = model.forward(batch.data, batch.mask).transpose(1,0)
             # print ("outputs.shape", outputs.shape)
@@ -375,8 +405,6 @@ def run_epoch(model, data, model_type):
 #
 ###############################################################################
 
-print("\n########## Getting validation average loss ##########################")
-
 
 rnn = RNN(emb_size=200, hidden_size=1500,
             seq_len=35, batch_size=20,
@@ -390,23 +418,23 @@ gru = GRU(emb_size=200, hidden_size=1500,
 
 trans = TRANSFORMER(vocab_size=vocab_size, n_units=512,
                     n_blocks=6, dropout=1.-0.9)
-#
-# # RNN
-# num_epochs = args.num_epochs
-# rnn.load_state_dict(torch.load('Question_4.1/RNN/best_params.pt'))
-# rnn_name = rnn.__class__.__name__
-# rnn_avg_losses = run_epoch(rnn, valid_data, model_type='RNN')
-# rnn_filename = rnn_name +'_avg_losses.npy'
-# path = os.path.join('Question_5.1', rnn_filename)
-# np.save(path, rnn_avg_losses)
 
-# GRU
-gru.load_state_dict(torch.load('Question_4.1/GRU/best_params.pt'))
-gru_name = gru.__class__.__name__
-gru_avg_losses = run_epoch(gru, valid_data, model_type='GRU')
-gru_filename = gru_name +'_avg_losses.npy'
-path = os.path.join('Question_5.1', gru_filename)
-np.save(path, gru_avg_losses)
+# RNN
+num_epochs = args.num_epochs
+rnn.load_state_dict(torch.load('Question_4.1/RNN/best_params.pt'))
+rnn_name = rnn.__class__.__name__
+rnn_avg_losses = run_epoch(rnn, valid_data, model_type='RNN')
+rnn_filename = rnn_name +'_avg_losses.npy'
+path = os.path.join('Question_5.1', rnn_filename)
+np.save(path, rnn_avg_losses)
+
+# # GRU
+# gru.load_state_dict(torch.load('Question_4.1/GRU/best_params.pt'))
+# gru_name = gru.__class__.__name__
+# gru_avg_losses = run_epoch(gru, valid_data, model_type='GRU')
+# gru_filename = gru_name +'_avg_losses.npy'
+# path = os.path.join('Question_5.1', gru_filename)
+# np.save(path, gru_avg_losses)
 
 # # Transformer
 # trans.load_state_dict(torch.load('Question_4.1/TRANSFORMER/best_params.pt'))
@@ -418,10 +446,10 @@ np.save(path, gru_avg_losses)
 
 # plt.plot(rnn_avg_losses, label=rnn_name)
 plt.plot(gru_avg_losses, label=gru_name)
-# plt.plot(trans_avg_losses, label=trans_name)
+plt.plot(trans_avg_losses, label=trans_name)
 plt.ylabel("average loss")
 plt.xlabel("time steps")
-plt.title("GRU Average loss per time-step")
-plt.savefig('gru_avg_losses.png')
+plt.title("RNN Average loss per time-step")
+plt.savefig('rnn_avg_losses.png')
 plt.clf()
 print("\nDONE")
