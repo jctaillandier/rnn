@@ -507,14 +507,13 @@ and a linear layer followed by a softmax.
 
 
 #----------------------------------------------------------------------------------
-
-# TODO: implement this class
 class MultiHeadedAttention(nn.Module):
     def __init__(self, n_heads, n_units, dropout=0.1):
         """
         n_heads: the number of attention heads
         n_units: the number of output units
         dropout: probability of DROPPING units
+
         """
         super(MultiHeadedAttention, self).__init__()
         # This sets the size of the keys, values, and queries (self.d_k) to all
@@ -524,16 +523,15 @@ class MultiHeadedAttention(nn.Module):
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
         self.n_units = n_units
-
-        self.drop = nn.Dropout(1-dropout)
+        self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
 
-        self.w_k = nn.Linear(self.n_units, self.d_k)
+        self.w_k = nn.Linear(self.n_units, self.n_units)
         self.w_k = self.w_k.to(device)
-        self.w_q = nn.Linear(self.n_units, self.d_k)
+        self.w_q = nn.Linear(self.n_units, self.n_units)
         self.w_q = self.w_q.to(device)
-        self.w_v = nn.Linear(self.n_units, self.d_k)
+        self.w_v = nn.Linear(self.n_units, self.n_units)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
@@ -549,58 +547,46 @@ class MultiHeadedAttention(nn.Module):
         torch.nn.init.uniform_(self.w_k.weight, -k, k)
         torch.nn.init.uniform_(self.w_k.bias, -k, k)
 
-        torch.nn.init.uniform_(self.w_o.weight, -k, k)
-        torch.nn.init.uniform_(self.w_o.bias, -k, k)
-
         torch.nn.init.uniform_(self.w_v.weight, -k, k)
         torch.nn.init.uniform_(self.w_v.bias, -k, k)
 
+        torch.nn.init.uniform_(self.w_q.weight, -k, k)
+        torch.nn.init.uniform_(self.w_q.bias, -k, k)
+
         torch.nn.init.uniform_(self.w_o.weight, -k, k)
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
 
-
-
     def forward(self, query, key, value, mask=None):
         # TODO: implement the masked multi-head attention.
-        # query, key, and value all have size: (batch_size, seq_len, self.n_units,// self.d_k)
+        # query, key, and value all have size: (batch_size, seq_len, self.n_units)
         # mask has size: (batch_size, seq_len, seq_len)
         # As described in the .tex, apply input masking to the softmax
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        #z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
-        other_z = []
+
 
         mask = mask.to(device, dtype=torch.float32)
-        # Where mask values are 0 , set to large negative, to fit softmax
-        mask[mask == 0] = -999999999
+        if mask is not None:
+            mask = mask.unsqueeze(1)
 
-        for head in range((self.n_heads)): # unsure
+        Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
+        K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
+        z = torch.matmul(Q, K.transpose(-2, -1) )/ (np.sqrt(self.d_k))
+        z = z.to(device)
+        # z is now the Attention value for this head
 
+        # Mask and Softmax over inputs
+        z = z.masked_fill(mask==0,-10e9)
+        #z = (z*mask)-((10**9)*(1-mask))
+        z =  F.softmax(z, dim=-1)
 
-                Q = self.w_q(query)
-                K = self.w_k(key)
-                z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
-                z = z.to(device)
-                # z is now the Attention value for this head
+        # Full Head attention value
+        z = torch.matmul(z, self.w_v(value).view(value.size(0),value.size(1),self.n_heads,self.d_k).transpose(1,2))
+        #Then Dropout
+        z = self.drop(z)
 
-                # Mask and Softmax over inputs
-                z = z*mask
-
-
-                z =  F.softmax(z, dim=1)
-
-
-                # Full Head attention value
-                z = torch.bmm(z, self.w_v(value))
-                #Then Dropout
-                z = self.drop(z)
-
-                other_z.append(z)
-
-        # Concatenate all heads together
-        logits = torch.cat(other_z, dim=2)
         # Output layer
-        logits = self.w_o(logits)
+        logits = self.w_o(z.transpose(1,2).contiguous().view(query.size(0),-1,self.n_units))
 
         return logits
 
