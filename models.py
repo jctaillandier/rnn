@@ -520,22 +520,23 @@ class MultiHeadedAttention(nn.Module):
         # be equal to the number of output units divided by the number of heads.
         self.n_heads = n_heads
         self.d_k = n_units // n_heads
+
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
         self.n_units = n_units
         self.drop = nn.Dropout(dropout)
-        self.drop = self.drop.to(device)
+        self.drop = self.drop
 
 
         self.w_k = nn.Linear(self.n_units, self.n_units)
-        self.w_k = self.w_k.to(device)
+        self.w_k = self.w_k
         self.w_q = nn.Linear(self.n_units, self.n_units)
-        self.w_q = self.w_q.to(device)
+        self.w_q = self.w_q
         self.w_v = nn.Linear(self.n_units, self.n_units)
-        self.w_v = self.w_v.to(device)
+        self.w_v = self.w_v
 
         self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
-        self.w_o = self.w_o.to(device)
+        self.w_o = self.w_o
 
         self.init_weights_uniform()
 
@@ -572,7 +573,7 @@ class MultiHeadedAttention(nn.Module):
         Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
         K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
         z = torch.matmul(Q, K.transpose(-2, -1) )/ (np.sqrt(self.d_k))
-        z = z.to(device)
+        # z = z.to(device)
         # z is now the Attention value for this head
 
         # Mask and Softmax over inputs
@@ -652,6 +653,7 @@ class TransformerStack(nn.Module):
     def __init__(self, layer, n_blocks): # layer will be TransformerBlock (below)
         super(TransformerStack, self).__init__()
         self.layers = clones(layer, n_blocks)
+        self.layers = self.layers
         self.norm = LayerNorm(layer.size)
 
     def forward(self, x, mask):
