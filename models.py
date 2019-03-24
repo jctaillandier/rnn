@@ -586,8 +586,8 @@ class MultiHeadedAttention(nn.Module):
                 # z is now the Attention value for this head
 
                 # Mask and Softmax over inputs
-                #z = z.masked_fill(mask==0,-10**9)
-                z = (z*mask)-((10**9)*(1-mask))
+                z = z.masked_fill(mask==0,-10e9)
+                #z = (z*mask)-((10**9)*(1-mask))
                 z =  F.softmax(z, dim=-1) 
 
                 # Full Head attention value
@@ -597,7 +597,7 @@ class MultiHeadedAttention(nn.Module):
                 
                 other_z.append(z)
                 # Check size here to make sure we concat on right axis
-
+        print('size of appended heads: ', logits.shape)
         # Concatenate all heads together
         logits = torch.cat(other_z,dim=2)
         # Output layer
