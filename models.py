@@ -140,7 +140,19 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                             shape: (seq_len, batch_size)
             - hidden: The initial hidden states for every layer of the stacked RNN.
                             shape: (num_layers, batch_size, hidden_size)
-        -
+        Returns:
+            - Logits for the softmax over output tokens at every time-step.
+                **Do NOT apply softmax to the outputs!**
+                Pytorch's CrossEntropyLoss function (applied in ptb-lm.py) does
+                this computation implicitly.
+                        shape: (seq_len, batch_size, vocab_size)
+            - The final hidden states for every layer of the stacked RNN.
+                These will be used as the initial hidden states for all the
+                mini-batches in an epoch, except for the first, where the return
+                value of self.init_hidden will be used.
+                See the repackage_hiddens function in ptb-lm.py for more details,
+                if you are curious.
+                        shape: (num_layers, batch_size, hidden_size)
         """
         # Compute the forward pass, using a nested python for loops.
         # The outer for loop should iterate over timesteps, and the
@@ -183,7 +195,6 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
                 hidden_states = x
                 x = self.drop(x)
 
-            ## AJOUTER LINEAR LAYER SANS ACTIVATION
             z = self.decoder(x)
             z = z.to(device)
 
@@ -192,25 +203,8 @@ class RNN(nn.Module): # Implement a stacked vanilla RNN with Tanh nonlinearities
 
             logits[timestep,:,:] = z[self.num_layers-1,:]
 
-
-        """
-
-        Returns:
-            - Logits for the softmax over output tokens at every time-step.
-                **Do NOT apply softmax to the outputs!**
-                Pytorch's CrossEntropyLoss function (applied in ptb-lm.py) does
-                this computation implicitly.
-                        shape: (seq_len, batch_size, vocab_size)
-            - The final hidden states for every layer of the stacked RNN.
-                These will be used as the initial hidden states for all the
-                mini-batches in an epoch, except for the first, where the return
-                value of self.init_hidden will be used.
-                See the repackage_hiddens function in ptb-lm.py for more details,
-                if you are curious.
-                        shape: (num_layers, batch_size, hidden_size)
-        """
         return logits.view(self.seq_len, self.batch_size, self.vocab_size), hidden_states
-        #
+
 
     def generate(self, input, hidden, generated_seq_len):
         # Compute the forward pass, as in the self.forward method (above).
@@ -313,7 +307,6 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
     self.rec_layers = clones(nn.Linear(self.hidden_size, self.hidden_size), num_layers-1).to(device)
     self.rec_layers.insert(0, nn.Linear(self.emb_size, self.hidden_size))
     self.rec_layers = self.rec_layers.to(device)
-
 
     #Initializing weights
     self.init_weights_uniform()
@@ -425,9 +418,38 @@ class GRU(nn.Module): # Implement a stacked GRU RNN
 
 
   def generate(self, input, hidden, generated_seq_len):
-    # TODO ========================
-    return samples
 
+    samples  = torch.empty(generated_seq_len, input.shape[0])
+    samples = samples.to(device)
+    samples[0,:] = input
+
+    for timestep in range(generated_seq_len):
+        x = self.encoder(input)
+        x = self.drop(x)
+
+        for layer in range(len(self.rec_layers)):
+            reset = self.reset_layers[layer](x)
+            u_reset_temp = self.u_reset_layers[layer](hidden[layer,:,:])
+            reset_temp = torch.sigmoid(reset+u_reset_temp)
+
+            forget = self.forget_layers[layer](x)
+            u_forget_temp =self.u_forget_layers[layer](hidden[layer,:,:])
+            forget_temp = torch.sigmoid(forget + u_forget_temp)
+
+            h_wiggle = self.rec_layers[layer](x) + self.u_hidden_layers[layer](reset_temp * hidden[layer,:,:])
+            h_wiggle = torch.tanh(h_wiggle)
+
+            x = torch.mul((1-forget_temp),hidden[layer,:,:].clone())+torch.mul(forget_temp,h_wiggle)
+
+            hidden[layer,:,:] = x
+            self.drop(x)
+
+        output = self.decoder(x)
+        output = F.softmax(output, dim=0)
+        output = torch.multinomial(output, 1)
+        samples[timestep,:] = output.squeeze()
+
+    return samples
 
 # Problem 3
 ##############################################################################
@@ -485,14 +507,13 @@ and a linear layer followed by a softmax.
 
 
 #----------------------------------------------------------------------------------
-
-# TODO: implement this class
 class MultiHeadedAttention(nn.Module):
     def __init__(self, n_heads, n_units, dropout=0.1):
         """
         n_heads: the number of attention heads
         n_units: the number of output units
         dropout: probability of DROPPING units
+
         """
         super(MultiHeadedAttention, self).__init__()
         # This sets the size of the keys, values, and queries (self.d_k) to all
@@ -501,17 +522,16 @@ class MultiHeadedAttention(nn.Module):
         self.d_k = n_units // n_heads
         # This requires the number of n_heads to evenly divide n_units.
         assert n_units % n_heads == 0
-        self.n_units = n_units 
-
-        self.drop = nn.Dropout(1-dropout)
+        self.n_units = n_units
+        self.drop = nn.Dropout(dropout)
         self.drop = self.drop.to(device)
 
 
-        self.w_k = nn.Linear(self.n_units, self.d_k)
+        self.w_k = nn.Linear(self.n_units, self.n_units)
         self.w_k = self.w_k.to(device)
-        self.w_q = nn.Linear(self.n_units, self.d_k)
+        self.w_q = nn.Linear(self.n_units, self.n_units)
         self.w_q = self.w_q.to(device)
-        self.w_v = nn.Linear(self.n_units, self.d_k)
+        self.w_v = nn.Linear(self.n_units, self.n_units)
         self.w_v = self.w_v.to(device)
 
         self.w_o = nn.Linear(self.d_k*self.n_heads, self.n_units)
@@ -527,55 +547,46 @@ class MultiHeadedAttention(nn.Module):
         torch.nn.init.uniform_(self.w_k.weight, -k, k)
         torch.nn.init.uniform_(self.w_k.bias, -k, k)
 
-        torch.nn.init.uniform_(self.w_o.weight, -k, k)
-        torch.nn.init.uniform_(self.w_o.bias, -k, k)
-
         torch.nn.init.uniform_(self.w_v.weight, -k, k)
         torch.nn.init.uniform_(self.w_v.bias, -k, k)
 
+        torch.nn.init.uniform_(self.w_q.weight, -k, k)
+        torch.nn.init.uniform_(self.w_q.bias, -k, k)
+
         torch.nn.init.uniform_(self.w_o.weight, -k, k)
         torch.nn.init.uniform_(self.w_o.bias, -k, k)
 
-
-
     def forward(self, query, key, value, mask=None):
         # TODO: implement the masked multi-head attention.
-        # query, key, and value all have size: (batch_size, seq_len, self.n_units,// self.d_k)
+        # query, key, and value all have size: (batch_size, seq_len, self.n_units)
         # mask has size: (batch_size, seq_len, seq_len)
         # As described in the .tex, apply input masking to the softmax
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-        #z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
-        other_z = []
 
         mask = mask.to(device, dtype=torch.float32)
-        # Where mask values are 0 , set to large negative, to fit softmax
-
-        for head in range((self.n_heads)): # unsure
-
-              
-                Q = self.w_q(query) 
-                K = self.w_k(key)
-                z = torch.bmm(Q, K.transpose(1,2) )/ (np.sqrt(self.d_k))
-                z = z.to(device)
-                # z is now the Attention value for this head
-
-                # Mask and Softmax over inputs
-                z = z.masked_fill(mask==0,-10**9)
-                z =  F.softmax(z, dim=1) 
+        if mask is not None:
+            mask = mask.unsqueeze(1)
 
 
-                # Full Head attention value
-                z = torch.bmm(z, self.w_v(value))
-                #Then Dropout
-                z = self.drop(z)
+        Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
+        K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
+        z = torch.matmul(Q, K.transpose(-2, -1) )/ (np.sqrt(self.d_k))
+        z = z.to(device)
+        # z is now the Attention value for this head
 
-                other_z.append(z)
+        # Mask and Softmax over inputs
+        z = z.masked_fill(mask==0,-10e9)
+        #z = (z*mask)-((10**9)*(1-mask))
+        z =  F.softmax(z, dim=-1)
 
-        # Concatenate all heads together
-        logits = torch.cat(other_z, dim=2)
+        # Full Head attention value
+        z = torch.matmul(z, self.w_v(value).view(value.size(0),value.size(1),self.n_heads,self.d_k).transpose(1,2))
+        #Then Dropout
+        z = self.drop(z)
+
         # Output layer
-        logits = self.w_o(logits)
+        logits = self.w_o(z.transpose(1,2).contiguous().view(query.size(0),-1,self.n_units))
 
         return logits
 
