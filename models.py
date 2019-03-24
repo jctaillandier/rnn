@@ -579,7 +579,7 @@ class MultiHeadedAttention(nn.Module):
         z =  F.softmax(z, dim=-1) 
 
         # Full Head attention value
-        z = torch.bmm(z, self.w_v(value).view(value.size(0),value.size(1),self.n_heads,self.d_k).transpose(1,2))
+        z = torch.matmul(z, self.w_v(value).view(value.size(0),value.size(1),self.n_heads,self.d_k).transpose(1,2))
         #Then Dropout
         z = self.drop(z)
 
