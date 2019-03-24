@@ -1,0 +1,18 @@
+{
+11: {'dir': './Question_4.2/RNN_SGD/',
+    'title':'RNN, SGD'},
+12: {'dir': './Question_4.2/RNN_SGD_LR_SCHEDULE/',
+    'title':'RNN, SGD_SCHED'},
+13: {'dir': './Question_4.1/RNN/',
+    'title':'RNN, ADAM'},
+14: {'dir': './Question_4.3/RNN_DP_0.45/',
+    'title':'RNN, ADAM, dp_keep=0.45'},
+15: {'dir': './Question_4.3/RNN_DP_0.55/',
+    'title':'RNN, ADAM, dp_keep=0.55'},
+16: {'dir': './Question_4.3/RNN_DP_0.55_HS_2000/',
+    'title':'RNN, ADAM, dp_keep=0.55, hidden=2000'},
+17: {'dir': './Question_4.3/RNN_HS_2000/',
+    'title':'RNN, ADAM, hidden=2000'},
+18: {'dir': './Question_4.3/RNN_NL_3/',
+    'title':'RNN, ADAM, layers=3'}
+}

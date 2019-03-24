@@ -41,24 +41,24 @@ def plot_model(dir, plot_title):
 
 
     fig.set_size_inches(8.5, 4)
-    plt.savefig(plot_title)
+    plt.savefig(plot_title.replace('.','_'))
+    plt.close()
     #plt.show()
 
 
-def plot_valid(experiments):
+def plot_valid(experiments, plot_title):
     
-    plot_title = 'Optimizer'
     fig = plt.figure()
 
     #fig.suptitle('bold figure suptitle', fontsize=14, fontweight='bold')
     fig.suptitle(plot_title)
     
-    ax1 = fig.add_subplot(121)
+    ax1 = fig.add_subplot(211)
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('PPL (log scale)')
     ax1.set_yscale('log')
     
-    ax2 = fig.add_subplot(122)
+    ax2 = fig.add_subplot(212)
     ax2.set_xlabel('Wall Time (hours)')
     ax2.set_ylabel('PPL (log scale)')
     ax2.set_yscale('log')
@@ -67,15 +67,16 @@ def plot_valid(experiments):
         dir = experiments[i]['dir']
         epochs, wall_times, _, val_ppls = get_modeldata(dir)
         caption = experiments[i]['title']
-    
+        caption = caption.replace(plot_title + ', ', '')
         ax1.plot(epochs, val_ppls, label = caption)
         ax1.legend()
     
         ax2.plot(wall_times, val_ppls, label = caption)
         ax2.legend()
     
-    fig.set_size_inches(8.5, 4)
+    fig.set_size_inches(8.5, 11)
     plt.savefig(plot_title)
+    plt.close()
     
 
 def get_modeldata(dir):
@@ -109,8 +110,22 @@ with open("experiments.txt", "r") as data:
     experiments = ast.literal_eval(data.read())
 
 for i in experiments.keys():
+    print(i, experiments[i]['dir'], experiments[i]['title'])
     plot_model(experiments[i]['dir'],experiments[i]['title'])
 
+optimizers = ['ADAM', 'SGD', 'SGD_SCHED']
 
-plot_valid(experiments)
+for i in optimizers:
+    with open(i + ".txt", "r") as data:
+        experiments = ast.literal_eval(data.read())
+
+    plot_valid(experiments, i)
+
+architectures = ['RNN', 'GRU', 'TRANSFORMER']
+
+for i in architectures:  
+    with open(i + ".txt", "r") as data:
+        experiments = ast.literal_eval(data.read())
+
+    plot_valid(experiments, i)
 
