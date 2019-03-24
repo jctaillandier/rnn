@@ -573,6 +573,7 @@ class MultiHeadedAttention(nn.Module):
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
         #z_cat = torch.empty(self.n_heads, value.shape[0], value.shape[1], self.d_k)
+        other_z = []
 
         mask = mask.to(device, dtype=torch.float32)
 
@@ -596,6 +597,8 @@ class MultiHeadedAttention(nn.Module):
                 z = torch.bmm(z, self.w_v(value))
                 #Then Dropout
                 z = self.drop(z)
+                
+                other_z.append(z)
         
         # Concatenate all heads together
         logits = torch.cat(other_z,dim=2)
