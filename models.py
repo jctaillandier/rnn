@@ -564,12 +564,12 @@ class MultiHeadedAttention(nn.Module):
         # As described in the .tex, apply input masking to the softmax
         # generating the "attention values" (i.e. A_i in the .tex)
         # Also apply dropout to the attention values.
-
+        print('here')
         mask = mask.to(device, dtype=torch.float32)
         if mask is not None:
             mask = mask.unsqueeze(1)
 
-
+        print('here')
         Q = self.w_q(query).view(query.size(0),query.size(1),self.n_heads,self.d_k).transpose(1,2)
         K = self.w_k(key).view(key.size(0),key.size(1),self.n_heads,self.d_k).transpose(1,2)
         z = torch.matmul(Q, K.transpose(-2, -1) )/ (np.sqrt(self.d_k))
