@@ -597,7 +597,7 @@ class MultiHeadedAttention(nn.Module):
                 
                 other_z.append(z)
                 # Check size here to make sure we concat on right axis
-        print('size of appended heads: ', logits.shape)
+        print('size of appended heads: ', other_z[0].shape)
         # Concatenate all heads together
         logits = torch.cat(other_z,dim=2)
         # Output layer
