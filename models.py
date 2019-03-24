@@ -587,7 +587,7 @@ class MultiHeadedAttention(nn.Module):
 
                 # Mask and Softmax over inputs
                 #z = z.masked_fill(mask==0,-10**9)
-                z = (x*mask)-((10**9)*(1-mask))
+                z = (z*mask)-((10**9)*(1-mask))
                 z =  F.softmax(z, dim=-1) 
 
                 # Full Head attention value
