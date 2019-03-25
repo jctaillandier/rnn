@@ -1,0 +1,14 @@
+{
+1: {'dir': './Question_4.3/GRU_SGD_seq_len=20/',
+    'title':'GRU, SGD, seq_len=20'},
+2: {'dir': './Question_4.2/GRU_SGD/',
+    'title':'GRU, SGD'},
+3: {'dir': './Question_4.3/GRU_SGD_seq_len=50/',
+    'title':'GRU, SGD, seq_len=50'},
+4: {'dir': './Question_4.3/GRU_SGD_dp_keep_prob=0.55/',
+    'title':'GRU, SGD, dp_keep=0.55'},
+11: {'dir': './Question_4.2/RNN_SGD/',
+    'title':'RNN, SGD'},
+19: {'dir': './Question_4.2/TRANSFORMER_SGD/',
+    'title':'TRANSFORMER, SGD'}
+}

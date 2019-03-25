@@ -1,0 +1,14 @@
+{
+19: {'dir': './Question_4.2/TRANSFORMER_SGD/',
+    'title':'TRANSFORMER, SGD'},
+20: {'dir': './Question_4.1/TRANSFORMER/',
+    'title':'TRANSFORMER, SGD_SCHED'},
+21: {'dir': './Question_4.3/TRANSFORMER_BS_64/',
+    'title':'TRANSFORMER, SGD_SCHED'},
+22: {'dir': './Question_4.2/TRANSFORMER_ADAM/',
+    'title':'TRANSFORMER, ADAM'},
+23: {'dir': './Question_4.3/TRANSFORMER_ADAM_NL_3/',
+    'title':'TRANSFORMER, ADAM, layers=3'},
+24: {'dir': './Question_4.3/TRANSFORMER_ADAM_LR_0.0005/',
+    'title':'TRANSFORMER, ADAM, lr=0.0005'}
+}
