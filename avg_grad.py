@@ -359,12 +359,9 @@ def repackage_hidden(h):
 
 def run_epoch(model, data):
     model.eval()
-    losses = np.zeros(model.seq_len)
 
     # LOOP THROUGH MINIBATCHES
     for step, (x, y) in enumerate(ptb_iterator(data, model.batch_size, model.seq_len)):
-
-        ts_losses = []
 
         hidden = model.init_hidden()
         hidden = hidden.to(device)
@@ -375,7 +372,6 @@ def run_epoch(model, data):
         outputs, hidden = model(inputs, hidden)
 
         targets = torch.from_numpy(y.astype(np.int64)).transpose(0, 1).contiguous().to(device)#.cuda()
-        tt = torch.squeeze(targets.view(-1, model.batch_size))
 
         # LOSS COMPUTATION
         loss = loss_fn(outputs[-1], targets[-1])
@@ -393,9 +389,9 @@ def run_epoch(model, data):
         plt.ylabel("Euclidiean Norm of the gradients")
         plt.xlabel("time steps")
         plt.title("Euclidian norm of the gradients at each time-step")
-        plt.savefig('rnn_grads.png')
+        plt.savefig('gru_grads.png')
         plt.clf()
-        np.save('Question_5.2/RNN_grads.npy', ts_grads)
+        np.save('Question_5.2/gru_grads.npy', ts_grads)
         break
 ###############################################################################
 #
@@ -403,14 +399,14 @@ def run_epoch(model, data):
 #
 ###############################################################################
 rnn = RNN(emb_size=200, hidden_size=1500,
-            seq_len=35, batch_size=20,
+            seq_len=35, batch_size=32,
             vocab_size=vocab_size, num_layers=2,
-            dp_keep_prob=0.35)
+            dp_keep_prob=0.45)
 
 gru = GRU(emb_size=200, hidden_size=1500,
             seq_len=35, batch_size=20,
             vocab_size=vocab_size, num_layers=2,
             dp_keep_prob=0.35)
 
-rnn.load_state_dict(torch.load('Question_4.1/RNN/best_params.pt'))
-run_epoch(rnn, train_data)
+gru.load_state_dict(torch.load('Question_4.1/GRU/best_params.pt'))
+run_epoch(gru, train_data)
